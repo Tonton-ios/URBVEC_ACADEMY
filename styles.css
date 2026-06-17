@@ -1,8 +1,10 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; }
+    html, body { width: 100%; min-height: 100%; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; overflow-x: hidden; }
 
     :root {
+      --app-height: 100vh;
       --urb-blue: #185FA5;
       --urb-blue-dark: #042C53;
       --urb-blue-light: #E6F1FB;
@@ -446,11 +448,20 @@
     /* WELCOME PAGE */
     .welcome-page {
       position: fixed;
-      inset: 0;
-      width: 100vw;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      min-width: 100vw;
       height: 100vh;
       min-height: 100vh;
+      height: var(--app-height);
+      min-height: var(--app-height);
+      min-height: 100svh;
       min-height: 100dvh;
+      margin: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       background: radial-gradient(circle at 50% 50%, rgba(239,159,39,0.2), transparent 28%),
         linear-gradient(135deg, #021b34 0%, #185FA5 58%, #0F6E56 100%);
       background-size: 100% 100%, 220% 220%;
@@ -469,8 +480,8 @@
       pointer-events: none;
     }
     .welcome-page::before {
-      width: 620px;
-      height: 620px;
+      width: clamp(360px, 80vw, 620px);
+      height: clamp(360px, 80vw, 620px);
       background: rgba(239,159,39,0.14);
       right: -190px;
       top: -170px;
@@ -478,8 +489,8 @@
       animation: welcomeFloat 3s ease-in-out infinite alternate;
     }
     .welcome-page::after {
-      width: 480px;
-      height: 480px;
+      width: clamp(300px, 72vw, 480px);
+      height: clamp(300px, 72vw, 480px);
       background: rgba(29,158,117,0.16);
       left: -140px;
       bottom: -130px;
@@ -508,8 +519,13 @@
     .welcome-content {
       position: relative;
       z-index: 1;
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      padding: 2rem;
+      padding: 1.25rem;
       animation: welcomeContentIn 0.75s cubic-bezier(0.16, 1, 0.3, 1);
     }
     @keyframes welcomeContentIn {
@@ -523,8 +539,8 @@
       }
     }
     .welcome-logo-wrap {
-      width: 290px;
-      height: 290px;
+      width: clamp(190px, 54vw, 290px);
+      height: clamp(190px, 54vw, 290px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -564,8 +580,8 @@
       animation: drawLogoLine 2s cubic-bezier(0.65, 0, 0.35, 1) 0.55s forwards;
     }
     .welcome-logo {
-      width: 235px;
-      height: 235px;
+      width: clamp(155px, 44vw, 235px);
+      height: clamp(155px, 44vw, 235px);
       object-fit: contain;
       position: relative;
       z-index: 1;
@@ -597,8 +613,8 @@
       .filter-btn { padding: 6px 12px; font-size: 12px; }
       .courses-container { padding: 3rem 1.5rem; }
       .courses-all-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-      .welcome-logo-wrap { width: 230px; height: 230px; }
-      .welcome-logo { width: 185px; height: 185px; }
+      .welcome-logo-wrap { width: clamp(180px, 58vw, 230px); height: clamp(180px, 58vw, 230px); }
+      .welcome-logo { width: clamp(145px, 47vw, 185px); height: clamp(145px, 47vw, 185px); }
       .welcome-logo-line circle { stroke-width: 6; }
     }
 
@@ -611,8 +627,8 @@
       .courses-container { padding: 2rem 1rem; }
       .courses-all-grid { grid-template-columns: 1fr; gap: 12px; }
       .course-card-expanded .course-body { padding: 1rem; }
-      .welcome-logo-wrap { width: 190px; height: 190px; }
-      .welcome-logo { width: 155px; height: 155px; }
+      .welcome-logo-wrap { width: clamp(150px, 60vw, 190px); height: clamp(150px, 60vw, 190px); }
+      .welcome-logo { width: clamp(122px, 49vw, 155px); height: clamp(122px, 49vw, 155px); }
       .welcome-logo-line circle { stroke-width: 6; }
     }
   

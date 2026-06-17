@@ -1,4 +1,20 @@
 // Menu hamburger toggle
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+
+function initAppHeight() {
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(setAppHeight, 150);
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setAppHeight);
+  }
+}
+
 function initMenuToggle() {
   const menuToggle = document.getElementById('menuToggle');
   const navLinks = document.getElementById('navLinks');
@@ -109,6 +125,8 @@ function initModalButtons() {
 
 // Page de bienvenue avec animation
 function showWelcomePage() {
+  setAppHeight();
+
   const welcomePage = document.createElement('div');
   welcomePage.id = 'welcome-page';
   welcomePage.className = 'welcome-page';
@@ -137,6 +155,7 @@ function showWelcomePage() {
 
 // Initialiser au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
+  initAppHeight();
   initMenuToggle();
   initCourseFilters();
   initClickableCards();
