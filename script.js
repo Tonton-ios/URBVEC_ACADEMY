@@ -155,6 +155,17 @@ function initRegistrationForm() {
       registrationSubmit.innerHTML = '<i class="ti ti-player-play"></i><span>Démarrer le cours</span>';
     }
 
+    registrationForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (!registrationForm.checkValidity()) {
+        registrationForm.reportValidity();
+        return;
+      }
+
+      playLogoTransition('cours-gratuit.html');
+    });
+
     return;
   }
 
@@ -237,6 +248,32 @@ function showWelcomePage() {
       unlockWelcomeScroll();
     }, 800);
   }, 2800);
+}
+
+function playLogoTransition(redirectUrl) {
+  setAppHeight();
+
+  const transitionPage = document.createElement('div');
+  transitionPage.className = 'welcome-page';
+  transitionPage.innerHTML = `
+    <div class="welcome-content">
+      <div class="welcome-logo-wrap">
+        <svg class="welcome-logo-line" viewBox="0 0 260 260" aria-hidden="true">
+          <circle cx="130" cy="130" r="118"></circle>
+        </svg>
+        <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="welcome-logo">
+      </div>
+    </div>
+  `;
+
+  lockWelcomeScroll();
+  transitionPage.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
+  transitionPage.addEventListener('wheel', (event) => event.preventDefault(), { passive: false });
+  document.body.insertBefore(transitionPage, document.body.firstChild);
+
+  setTimeout(() => {
+    window.location.href = redirectUrl;
+  }, 3000);
 }
 
 // Initialiser au chargement du DOM

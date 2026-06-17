@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cours Gratuit - URBVEC ACADEMY 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img">
+    <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Accueil</a>
+    <a href="cours.html">Cours online</a>
+    <a href="inscription.html" class="nav-cta">S'inscrire</a>
+  </div>
+</nav>
+
+<!-- FREE AI COURSE -->
+<main class="ai-course-page">
+  <section class="ai-quiz-screen" id="aiQuizScreen">
+    <div class="ai-course-hero">
+      <div class="section-eyebrow">Cours gratuit · Compétences Pratiques</div>
+      <h1>Maîtriser l'IA au quotidien</h1>
+      <p>Avant de commencer, répondez à quelques questions rapides. Elles permettent de situer votre niveau et de démarrer le cours avec le bon contexte.</p>
+    </div>
+
+    <form class="ai-quiz-card" id="aiQuizForm">
+      <div class="quiz-question">
+        <h2>1. As-tu déjà utilisé une IA dans ta vie ?</h2>
+        <label><input type="radio" name="ai_use" value="souvent" required> Oui, souvent</label>
+        <label><input type="radio" name="ai_use" value="quelques-fois"> Oui, quelques fois</label>
+        <label><input type="radio" name="ai_use" value="jamais"> Non, jamais</label>
+      </div>
+
+      <div class="quiz-question">
+        <h2>2. Selon toi, l'IA remplacera les humains ?</h2>
+        <label><input type="radio" name="ai_replace" value="tout" required> Oui, dans presque tous les métiers</label>
+        <label><input type="radio" name="ai_replace" value="aider"> Non, elle aidera surtout les humains à mieux travailler</label>
+        <label><input type="radio" name="ai_replace" value="aucune-idee"> Je ne sais pas encore</label>
+      </div>
+
+      <div class="quiz-question">
+        <h2>3. Quelle IA est dédiée à la création d'image ?</h2>
+        <label><input type="radio" name="image_ai" value="midjourney" required> Midjourney</label>
+        <label><input type="radio" name="image_ai" value="excel"> Microsoft Excel</label>
+        <label><input type="radio" name="image_ai" value="whatsapp"> WhatsApp</label>
+      </div>
+
+      <div class="quiz-question">
+        <h2>4. Pour quelle activité veux-tu surtout utiliser l'IA ?</h2>
+        <label><input type="radio" name="ai_goal" value="travail" required> Travailler plus vite</label>
+        <label><input type="radio" name="ai_goal" value="creation"> Créer du contenu ou des images</label>
+        <label><input type="radio" name="ai_goal" value="apprendre"> Apprendre et mieux comprendre mes cours</label>
+      </div>
+
+      <div class="quiz-question">
+        <h2>5. Qu'est-ce qu'un bon prompt ?</h2>
+        <label><input type="radio" name="prompt" value="clair" required> Une consigne claire avec un objectif et du contexte</label>
+        <label><input type="radio" name="prompt" value="court"> Un seul mot envoyé à l'IA</label>
+        <label><input type="radio" name="prompt" value="secret"> Un code secret réservé aux experts</label>
+      </div>
+
+      <button class="registration-submit" type="submit">
+        <i class="ti ti-checkup-list"></i>
+        Voir mon dashboard
+      </button>
+    </form>
+  </section>
+
+  <section class="ai-course-dashboard" id="aiCourseDashboard" aria-live="polite">
+    <div class="dashboard-welcome">
+      <div>
+        <div class="section-eyebrow">Bienvenue au cours de</div>
+        <h1>Maîtriser l'IA au quotidien</h1>
+        <p>Votre parcours commence ici : comprendre l'IA, écrire de bons prompts, créer des contenus utiles et appliquer l'IA dans vos tâches de tous les jours.</p>
+      </div>
+      <div class="dashboard-score">
+        <span>Niveau de départ</span>
+        <strong id="aiLevelLabel">Débutant motivé</strong>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <aside class="dashboard-panel">
+        <h2>Progression</h2>
+        <div class="lesson-progress">
+          <span>Module 1 sur 5</span>
+          <div><strong></strong></div>
+        </div>
+        <div class="dashboard-stats">
+          <span><i class="ti ti-book-2"></i> 5 modules</span>
+          <span><i class="ti ti-clock"></i> 2h 30 min</span>
+          <span><i class="ti ti-certificate"></i> Attestation</span>
+        </div>
+      </aside>
+
+      <div class="modules-panel">
+        <div class="module-card active">
+          <div class="module-icon"><i class="ti ti-sparkles"></i></div>
+          <div>
+            <span>Module 1</span>
+            <h2>Comprendre l'IA simplement</h2>
+            <p>Découvrir ce qu'est l'IA, ses limites et les bons réflexes pour l'utiliser.</p>
+          </div>
+          <button type="button"><i class="ti ti-player-play"></i></button>
+        </div>
+
+        <div class="module-card">
+          <div class="module-icon"><i class="ti ti-message-2-code"></i></div>
+          <div>
+            <span>Module 2</span>
+            <h2>Écrire des prompts efficaces</h2>
+            <p>Formuler des demandes claires pour obtenir de meilleures réponses.</p>
+          </div>
+          <button type="button"><i class="ti ti-lock"></i></button>
+        </div>
+
+        <div class="module-card">
+          <div class="module-icon"><i class="ti ti-photo-ai"></i></div>
+          <div>
+            <span>Module 3</span>
+            <h2>Créer des images avec l'IA</h2>
+            <p>Comprendre les outils visuels et préparer une bonne demande d'image.</p>
+          </div>
+          <button type="button"><i class="ti ti-lock"></i></button>
+        </div>
+
+        <div class="module-card">
+          <div class="module-icon"><i class="ti ti-briefcase"></i></div>
+          <div>
+            <span>Module 4</span>
+            <h2>Utiliser l'IA au travail</h2>
+            <p>Résumer, organiser, écrire, planifier et gagner du temps au quotidien.</p>
+          </div>
+          <button type="button"><i class="ti ti-lock"></i></button>
+        </div>
+
+        <div class="module-card">
+          <div class="module-icon"><i class="ti ti-shield-check"></i></div>
+          <div>
+            <span>Module 5</span>
+            <h2>Utiliser l'IA avec responsabilité</h2>
+            <p>Vérifier les réponses, protéger ses données et éviter les erreurs courantes.</p>
+          </div>
+          <button type="button"><i class="ti ti-lock"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
