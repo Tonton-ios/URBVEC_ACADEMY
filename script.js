@@ -125,11 +125,38 @@ function enrollCourse() {
 }
 
 function initRegistrationForm() {
+  const registrationForm = document.getElementById('registrationForm');
   const courseSelect = document.getElementById('courseSelect');
   const priceInfo = document.getElementById('priceInfo');
   const priceAmount = document.getElementById('priceAmount');
+  const freeCourseInfo = document.getElementById('freeCourseInfo');
+  const moncashAlert = document.getElementById('moncashAlert');
+  const paymentFields = document.getElementById('paymentFields');
+  const registrationSubmit = document.getElementById('registrationSubmit');
+  const transactionId = document.getElementById('transactionId');
+  const paymentProof = document.getElementById('paymentProof');
 
-  if (!courseSelect || !priceInfo || !priceAmount) return;
+  if (!registrationForm || !courseSelect || !priceInfo || !priceAmount) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const isFreeMode = params.get('mode') === 'gratuit';
+
+  if (isFreeMode) {
+    courseSelect.required = false;
+    courseSelect.closest('.form-group').style.display = 'none';
+    priceInfo.style.display = 'none';
+
+    if (freeCourseInfo) freeCourseInfo.style.display = 'flex';
+    if (moncashAlert) moncashAlert.style.display = 'none';
+    if (paymentFields) paymentFields.style.display = 'none';
+    if (transactionId) transactionId.required = false;
+    if (paymentProof) paymentProof.required = false;
+    if (registrationSubmit) {
+      registrationSubmit.innerHTML = '<i class="ti ti-player-play"></i><span>Démarrer le cours</span>';
+    }
+
+    return;
+  }
 
   courseSelect.addEventListener('change', () => {
     const selectedOption = courseSelect.options[courseSelect.selectedIndex];

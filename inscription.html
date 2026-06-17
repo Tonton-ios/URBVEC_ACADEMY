@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <form class="registration-form" action="#" method="post" enctype="multipart/form-data">
+    <form class="registration-form" id="registrationForm" action="#" method="post" enctype="multipart/form-data">
       <div class="form-grid">
         <div class="form-group">
           <label for="fullName"><i class="ti ti-user"></i> Nom complet</label>
@@ -83,6 +83,14 @@
         </div>
       </div>
 
+      <div class="free-course-info" id="freeCourseInfo">
+        <i class="ti ti-gift"></i>
+        <div>
+          <span>Cours gratuit</span>
+          <strong>Accès immédiat après inscription</strong>
+        </div>
+      </div>
+
       <div class="price-info" id="priceInfo">
         <i class="ti ti-cash"></i>
         <div>
@@ -91,7 +99,7 @@
         </div>
       </div>
 
-      <div class="moncash-alert">
+      <div class="moncash-alert" id="moncashAlert">
         <i class="ti ti-alert-circle"></i>
         <div>
           <span>Envoyez le paiement MonCash au numéro officiel</span>
@@ -99,7 +107,7 @@
         </div>
       </div>
 
-      <div class="form-grid">
+      <div class="form-grid" id="paymentFields">
         <div class="form-group">
           <label for="transactionId"><i class="ti ti-receipt"></i> ID de transaction MonCash</label>
           <input type="text" id="transactionId" name="transactionId" placeholder="Numéro d'autorisation SMS" required>
@@ -111,9 +119,9 @@
         </div>
       </div>
 
-      <button type="submit" class="registration-submit">
+      <button type="submit" class="registration-submit" id="registrationSubmit">
         <i class="ti ti-send"></i>
-        Soumettre l'inscription
+        <span>Soumettre l'inscription</span>
       </button>
     </form>
   </div>
