@@ -245,6 +245,204 @@
     }
     .btn-dark:hover { background: var(--urb-blue); }
 
+    /* REGISTRATION PAGE */
+    .registration-section {
+      background: linear-gradient(180deg, #eef5fc 0%, #ffffff 100%);
+      padding: 4.5rem 2rem;
+    }
+    .registration-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 2rem;
+      max-width: 1080px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    .registration-intro {
+      background: var(--urb-blue-dark);
+      color: #fff;
+      border-radius: 14px;
+      padding: 2rem;
+      position: sticky;
+      top: 88px;
+      overflow: hidden;
+    }
+    .registration-intro::after {
+      content: '';
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      right: -90px;
+      bottom: -100px;
+      background: rgba(239,159,39,0.14);
+      pointer-events: none;
+    }
+    .registration-intro h1 {
+      font-size: 34px;
+      line-height: 1.18;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+    .registration-intro p {
+      color: rgba(255,255,255,0.72);
+      font-size: 14px;
+      line-height: 1.75;
+      position: relative;
+      z-index: 1;
+    }
+    .registration-highlights {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .registration-highlights span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.86);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .registration-highlights i { color: var(--urb-gold); font-size: 18px; }
+    .registration-form {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 2rem;
+      box-shadow: 0 18px 50px rgba(4,44,83,0.08);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-group label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--urb-blue-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .form-group label i {
+      color: var(--urb-blue);
+      font-size: 17px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid #ccd7e3;
+      border-radius: 8px;
+      background: #fff;
+      color: #1a1a2e;
+      font: inherit;
+      font-size: 14px;
+      padding: 0 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-group input[type="file"] {
+      padding: 10px 13px;
+      cursor: pointer;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--urb-blue);
+      box-shadow: 0 0 0 3px rgba(24,95,165,0.12);
+    }
+    .price-info {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 10px;
+      background: var(--urb-blue-light);
+      border: 1px solid #b5d4f4;
+      color: var(--urb-blue-dark);
+    }
+    .price-info i {
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--urb-blue);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .price-info span,
+    .moncash-alert span {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 3px;
+    }
+    .price-info strong {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .moncash-alert {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 10px;
+      background: #fff3df;
+      border: 1px solid #f5c978;
+      color: #6b3b00;
+    }
+    .moncash-alert i {
+      color: var(--urb-gold-dark);
+      font-size: 30px;
+      flex-shrink: 0;
+    }
+    .moncash-alert strong {
+      display: block;
+      color: var(--urb-blue-dark);
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: 0.5px;
+    }
+    .registration-submit {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--urb-gold);
+      color: var(--urb-blue-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+    }
+    .registration-submit:hover {
+      background: var(--urb-gold-dark);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
     /* FOOTER */
     .footer { background: #020d1a; padding: 3.5rem 2rem 1.5rem; }
     .footer-inner {
@@ -314,6 +512,13 @@
       .cta-band { padding: 2.5rem 1.5rem; }
       .cta-band h2 { font-size: 22px; }
       .cta-band p { font-size: 14px; }
+      .registration-section { padding: 3rem 1.5rem; }
+      .registration-shell { grid-template-columns: 1fr; gap: 1.5rem; }
+      .registration-intro { position: static; }
+      .registration-intro h1 { font-size: 28px; }
+      .registration-form { padding: 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .moncash-alert strong { font-size: 22px; }
       
       .footer-inner { grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 2rem 0; }
       .footer-brand { grid-column: 1 / -1; }
@@ -355,6 +560,15 @@
       .cta-band h2 { font-size: 20px; }
       .cta-band p { font-size: 13px; margin-bottom: 1rem; }
       .btn-dark { padding: 11px 24px; font-size: 14px; }
+      .registration-section { padding: 2rem 1rem; }
+      .registration-intro,
+      .registration-form { padding: 1rem; border-radius: 10px; }
+      .registration-intro h1 { font-size: 23px; }
+      .registration-intro p,
+      .registration-highlights span { font-size: 12px; }
+      .price-info strong,
+      .moncash-alert strong { font-size: 20px; }
+      .moncash-alert { align-items: flex-start; }
       
       .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
       .footer-brand p { font-size: 12px; }

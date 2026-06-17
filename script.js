@@ -73,7 +73,9 @@ function initCourseFilters() {
 // Rendre les cartes cliquables
 function initClickableCards() {
   document.querySelectorAll('.course-card-expanded').forEach(card => {
-    card.addEventListener('click', function() {
+    card.addEventListener('click', function(event) {
+      if (event.target.closest('a, button')) return;
+
       const title = this.querySelector('h3').textContent;
       const category = this.querySelector('.course-cat').textContent;
       const level = this.querySelector('.course-level').textContent;
@@ -118,8 +120,30 @@ function closeCourseModal() {
 
 // S'inscrire
 function enrollCourse() {
-  alert('Redirection vers la page d\'inscription...');
+  window.location.href = 'inscription.html';
   closeCourseModal();
+}
+
+function initRegistrationForm() {
+  const courseSelect = document.getElementById('courseSelect');
+  const priceInfo = document.getElementById('priceInfo');
+  const priceAmount = document.getElementById('priceAmount');
+
+  if (!courseSelect || !priceInfo || !priceAmount) return;
+
+  courseSelect.addEventListener('change', () => {
+    const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+    const price = Number(selectedOption.dataset.price);
+
+    if (!courseSelect.value || !price) {
+      priceInfo.style.display = 'none';
+      priceAmount.textContent = '';
+      return;
+    }
+
+    priceAmount.textContent = `${price.toLocaleString('fr-FR')} HTG`;
+    priceInfo.style.display = 'flex';
+  });
 }
 
 function initModalButtons() {
@@ -195,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCourseFilters();
   initClickableCards();
   initModalButtons();
+  initRegistrationForm();
   
   // Fermer le modal en cliquant dehors
   const modal = document.getElementById('courseModal');
