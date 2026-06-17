@@ -1,6 +1,15 @@
 // Menu hamburger toggle
 function setAppHeight() {
-  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+  const visibleHeights = [
+    window.innerHeight,
+    document.documentElement.clientHeight,
+    window.visualViewport ? window.visualViewport.height : 0
+  ];
+  const appHeight = Math.ceil(Math.max(...visibleHeights.filter(Boolean)));
+  const coverHeight = Math.ceil(Math.max(appHeight, window.screen ? window.screen.height : 0));
+
+  document.documentElement.style.setProperty('--app-height', `${appHeight}px`);
+  document.documentElement.style.setProperty('--cover-height', `${coverHeight}px`);
 }
 
 function initAppHeight() {

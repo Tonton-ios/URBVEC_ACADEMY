@@ -13,6 +13,7 @@
 
     :root {
       --app-height: 100vh;
+      --cover-height: 100vh;
       --urb-blue: #185FA5;
       --urb-blue-dark: #042C53;
       --urb-blue-light: #E6F1FB;
@@ -458,14 +459,14 @@
       position: fixed;
       top: 0;
       right: 0;
-      bottom: 0;
+      bottom: -140px;
       left: 0;
       width: 100%;
       min-width: 100vw;
       height: 100vh;
       min-height: 100vh;
-      height: var(--app-height);
-      min-height: var(--app-height);
+      height: var(--cover-height);
+      min-height: var(--cover-height);
       min-height: 100svh;
       min-height: 100dvh;
       margin: 0;
@@ -525,10 +526,16 @@
       }
     }
     .welcome-content {
-      position: relative;
+      position: fixed;
+      inset: 0;
       z-index: 1;
       width: 100%;
-      min-height: 100%;
+      height: 100vh;
+      height: var(--app-height);
+      min-height: 100vh;
+      min-height: var(--app-height);
+      min-height: 100svh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
