@@ -2,6 +2,14 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; overflow-x: hidden; }
+    html.welcome-lock,
+    body.welcome-lock {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
 
     :root {
       --app-height: 100vh;

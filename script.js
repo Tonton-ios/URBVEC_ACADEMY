@@ -123,6 +123,30 @@ function initModalButtons() {
   });
 }
 
+let welcomeScrollY = 0;
+
+function lockWelcomeScroll() {
+  welcomeScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.add('welcome-lock');
+  document.body.classList.add('welcome-lock');
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${welcomeScrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+function unlockWelcomeScroll() {
+  document.documentElement.classList.remove('welcome-lock');
+  document.body.classList.remove('welcome-lock');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, welcomeScrollY);
+}
+
 // Page de bienvenue avec animation
 function showWelcomePage() {
   setAppHeight();
@@ -140,7 +164,9 @@ function showWelcomePage() {
       </div>
     </div>
   `;
-  document.body.style.overflow = 'hidden';
+  lockWelcomeScroll();
+  welcomePage.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
+  welcomePage.addEventListener('wheel', (event) => event.preventDefault(), { passive: false });
   document.body.insertBefore(welcomePage, document.body.firstChild);
   
   // Supprimer la page de bienvenue après le tracé du contour
@@ -148,7 +174,7 @@ function showWelcomePage() {
     welcomePage.classList.add('fade-out');
     setTimeout(() => {
       welcomePage.remove();
-      document.body.style.overflow = 'auto';
+      unlockWelcomeScroll();
     }, 800);
   }, 2800);
 }
