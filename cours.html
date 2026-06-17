@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nos Cours - URBVEC ACADEMY 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img">
+    <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Accueil</a>
+    <a href="">Cours online</a>
+    <a href="#">À propos</a>
+    <a href="#">Témoignages</a>
+    <a href="#">Contact</a>
+    <a href="#" class="nav-cta">S'inscrire</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<section class="courses-page-header">
+  <div>
+    <h1>Explorez nos <span>10+ Cours</span></h1>
+    <p>Des formations structurées et actualisées couvrant tous les domaines pour accélérer votre carrière professionnelle.</p>
+    <div class="courses-filters">
+      <button class="filter-btn active" data-filter="all">Tous les cours</button>
+      <button class="filter-btn" data-filter="tech"><i class="ti ti-code"></i> Technologie</button>
+      <button class="filter-btn" data-filter="business"><i class="ti ti-briefcase"></i> Business</button>
+      <button class="filter-btn" data-filter="design"><i class="ti ti-palette"></i> Design</button>
+      <button class="filter-btn" data-filter="marketing"><i class="ti ti-megaphone"></i> Marketing</button>
+    </div>
+  </div>
+</section>
+
+<!-- COURSES LIST -->
+<section class="courses-container">
+  <div class="courses-all-grid" id="coursesGrid">
+    
+    <!-- Cours 1: Développement Web Moderne -->
+    <div class="course-card-expanded" data-category="tech">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Technologie</div>
+        <h3>Développement Web Moderne</h3>
+        <p>Maîtrisez HTML, CSS et JavaScript pour créer des interfaces web professionnelles, responsives et performantes.</p>
+        <div class="course-meta">
+          <span class="course-level">Débutant</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 40h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 2: Gestion de Projet & Leadership -->
+    <div class="course-card-expanded" data-category="business">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Business</div>
+        <h3>Gestion de Projet &amp; Leadership</h3>
+        <p>Apprenez les méthodologies agiles, le management d'équipe et devenez un leader efficace dans votre entreprise.</p>
+        <div class="course-meta">
+          <span class="course-level">Intermédiaire</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 25h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 3: Python & Automatisation -->
+    <div class="course-card-expanded" data-category="tech">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1526374965328-7f5ae4e8b08f?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Technologie</div>
+        <h3>Python &amp; Automatisation</h3>
+        <p>Apprenez Python pour automatiser des tâches répétitives, analyser des données et construire des scripts puissants.</p>
+        <div class="course-meta">
+          <span class="course-level">Débutant</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 35h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 4: Design UX/UI avec Figma -->
+    <div class="course-card-expanded" data-category="design">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Design</div>
+        <h3>Design UX/UI avec Figma</h3>
+        <p>Créez des interfaces intuitives et des expériences utilisateur exceptionnelles avec les outils professionnels de Figma.</p>
+        <div class="course-meta">
+          <span class="course-level">Tous niveaux</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 30h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 5: Marketing Digital & SEO -->
+    <div class="course-card-expanded" data-category="marketing">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1460925895917-adf4078fc482?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Marketing</div>
+        <h3>Marketing Digital &amp; SEO</h3>
+        <p>Dominez les stratégies de marketing digital, le SEO et les techniques de conversion pour augmenter votre visibilité en ligne.</p>
+        <div class="course-meta">
+          <span class="course-level">Intermédiaire</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 28h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 6: React Avancé -->
+    <div class="course-card-expanded" data-category="tech">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1633356122544-f134ef2944f1?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Technologie</div>
+        <h3>React Avancé</h3>
+        <p>Maîtrisez React pour construire des applications web modernes, scalables et hautement performantes avec les meilleures pratiques.</p>
+        <div class="course-meta">
+          <span class="course-level">Avancé</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 45h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 7: Entrepreneuriat & Startup -->
+    <div class="course-card-expanded" data-category="business">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1552492235-c5b87dad50b5?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Business</div>
+        <h3>Entrepreneuriat &amp; Startup</h3>
+        <p>Apprenez à lancer et développer votre startup, lever des fonds et construire une entreprise pérenne et rentable.</p>
+        <div class="course-meta">
+          <span class="course-level">Intermédiaire</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 32h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- NOUVEAU - Cours 8: Introduction à la Gestion & Finance -->
+    <div class="course-card-expanded" data-category="business">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1554224311-beee415c201f?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Business</div>
+        <h3>Intro à la Gestion &amp; Finance</h3>
+        <p>Maîtrisez les bases de la gestion d'entreprise, apprenez à piloter un budget et comprenez les flux financiers essentiels.</p>
+        <div class="course-meta">
+          <span class="course-level">Débutant</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 20h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 9: Data Science avec Python -->
+    <div class="course-card-expanded" data-category="tech">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Technologie</div>
+        <h3>Data Science avec Python</h3>
+        <p>Analysez des données complexes, créez des visualisations impactantes et prenez des décisions basées sur la data.</p>
+        <div class="course-meta">
+          <span class="course-level">Avancé</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 50h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 10: Branding & Design Graphique -->
+    <div class="course-card-expanded" data-category="design">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1552493957-de2c92fa8e48?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Design</div>
+        <h3>Branding &amp; Design Graphique</h3>
+        <p>Créez des identités visuelles fortes et cohérentes pour les marques avec les principes du design moderne.</p>
+        <div class="course-meta">
+          <span class="course-level">Tous niveaux</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 26h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- NOUVEAU - Cours 11: Langues & Communication -->
+    <div class="course-card-expanded" data-category="communication">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415519?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Communication</div>
+        <h3>Langues &amp; Communication</h3>
+        <p>Perfectionnez votre expression écrite et orale, structurez vos pitchs et maîtrisez l'anglais professionnel.</p>
+        <div class="course-meta">
+          <span class="course-level">Tous niveaux</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 24h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- Cours 12: Content Marketing & Copywriting -->
+    <div class="course-card-expanded" data-category="marketing">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Marketing</div>
+        <h3>Content Marketing &amp; Copywriting</h3>
+        <p>Écrivez du contenu convaincant qui engage votre audience et génère des conversions de manière cohérente.</p>
+        <div class="course-meta">
+          <span class="course-level">Débutant</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 22h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- NOUVEAU - Cours 13: Développement Personnel -->
+    <div class="course-card-expanded" data-category="growth">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Croissance</div>
+        <h3>Développement Personnel</h3>
+        <p>Boostez votre confiance, développez un état d'esprit de croissance et apprenez à gérer efficacement votre temps.</p>
+        <div class="course-meta">
+          <span class="course-level">Tous niveaux</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 15h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- NOUVEAU - Cours 14: Compétences Pratiques -->
+    <div class="course-card-expanded" data-category="practical">
+      <div class="course-thumb" style="background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&h=300&fit=crop'); background-size: cover; background-position: center;"></div>
+      <div class="course-body">
+        <div class="course-cat">Pratique</div>
+        <h3>Compétences Pratiques</h3>
+        <p>Maîtrisez les outils informatiques du quotidien essentiels en entreprise : tableurs, suite bureautique et outils d'IA.</p>
+        <div class="course-meta">
+          <span class="course-level">Débutant</span>
+          <span class="course-meta-detail"><i class="ti ti-clock" style="font-size:11px;"></i> 18h</span>
+        </div>
+        <a href="#" class="btn-enroll"><i class="ti ti-play"></i> S'inscrire</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- CTA BAND -->
+<div class="cta-band">
+  <h2>Prêt à transformer votre carrière ?</h2>
+  <p>Inscrivez-vous maintenant et commencez votre premier cours gratuitement aujourd'hui.</p>
+  <a href="#" class="btn-dark">
+    <i class="ti ti-rocket"></i>
+    Commencer gratuitement
+  </a>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo" style="margin-bottom: 0.75rem;">
+        <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img" style="width: 32px; height: 32px;">
+        <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+      </div>
+      <p>La plateforme de formation en ligne de référence pour les professionnels haïtiens et la diaspora. Apprenez, grandissez, réussissez.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Formation</h4>
+      <a href="cours.html">Tous les cours</a>
+      <a href="#">Certificats</a>
+      <a href="#">Parcours pro</a>
+      <a href="#">Webinaires</a>
+    </div>
+    <div class="footer-col">
+      <h4>Académie</h4>
+      <a href="#">À propos</a>
+      <a href="#">Notre équipe</a>
+      <a href="#">Partenaires</a>
+      <a href="#">Blog</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="#">Support</a>
+      <a href="#">FAQ</a>
+      <a href="#">WhatsApp</a>
+      <a href="mailto:info@urbvec.com">info@urbvec.com</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 URBVEC Academy. Tous droits réservés. · Fait avec passion pour l'éducation 🇭🇹
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="course-modal" id="courseModal">
+  <div class="modal-content">
+    <button class="modal-close" data-modal-close>×</button>
+    <div class="modal-header" id="modalImage"></div>
+    <div class="modal-body">
+      <div class="course-cat" id="modalCategory"></div>
+      <h2 id="modalTitle"></h2>
+      <div class="course-meta">
+        <div class="modal-meta-item">
+          <span class="label"><i class="ti ti-medal"></i> Niveau</span>
+          <span class="value" id="modalLevel"></span>
+        </div>
+        <div class="modal-meta-item">
+          <span class="label"><i class="ti ti-clock"></i> Durée</span>
+          <span class="value" id="modalDuration"></span>
+        </div>
+      </div>
+      <div class="course-description" id="modalDescription"></div>
+      <div class="course-details-list">
+        <h3>Ce que vous apprendrez</h3>
+        <ul id="modalLearnings"></ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-enroll-modal" data-enroll-course><i class="ti ti-play"></i> S'inscrire maintenant</button>
+      <button class="btn-close-modal" data-modal-close>Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
