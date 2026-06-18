@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cours Online - URBVEC ACADEMY 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img">
+    <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Accueil</a>
+    <a href="cours-online.html">Cours online</a>
+    <a href="index.html#about">À propos</a>
+    <a href="index.html#temoignages">Témoignages</a>
+    <a href="index.html#contact">Contact</a>
+    <a href="inscription.html" class="nav-cta">S'inscrire</a>
+  </div>
+</nav>
+
+<!-- ONLINE COURSES LOGIN -->
+<section class="online-login-section">
+  <div class="online-login-shell">
+    <div class="online-login-intro">
+      <div class="section-eyebrow">Espace étudiant</div>
+      <h1>Connectez-vous à vos cours online</h1>
+      <p>Entrez votre email et votre mot de passe pour continuer vers votre espace de formation URBVEC ACADEMY .</p>
+      <div class="online-login-points">
+        <span><i class="ti ti-video"></i> Vidéos de cours</span>
+        <span><i class="ti ti-file-type-pdf"></i> Supports PDF</span>
+        <span><i class="ti ti-help-circle"></i> Quiz et exercices</span>
+      </div>
+    </div>
+
+    <form class="online-login-form" action="#" method="post">
+      <div class="login-form-icon">
+        <i class="ti ti-lock-access"></i>
+      </div>
+      <h2>Connexion</h2>
+
+      <div class="form-group">
+        <label for="studentLogin"><i class="ti ti-user-circle"></i> Email ou numéro de téléphone</label>
+        <input type="text" id="studentLogin" name="studentLogin" placeholder="votre@email.com ou +509 0000-0000" required>
+      </div>
+
+      <div class="form-group">
+        <label for="studentPassword"><i class="ti ti-key"></i> Mot de passe</label>
+        <input type="password" id="studentPassword" name="studentPassword" placeholder="Votre mot de passe" required>
+      </div>
+
+      <div class="forgot-password-row">
+        <a href="#" class="forgot-password-link">
+          <i class="ti ti-help-circle"></i>
+          Mot de passe oublié ?
+        </a>
+      </div>
+
+      <button type="submit" class="registration-submit">
+        <i class="ti ti-arrow-right"></i>
+        Continuer
+      </button>
+    </form>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
