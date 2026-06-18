@@ -51,10 +51,10 @@
           <span>Gestion quotidienne</span>
         </div>
         <div class="admin-action-list">
-          <button type="button"><i class="ti ti-plus"></i> Ajouter un cours</button>
-          <button type="button"><i class="ti ti-upload"></i> Ajouter un PDF</button>
-          <button type="button"><i class="ti ti-video-plus"></i> Ajouter une vidéo</button>
-          <button type="button"><i class="ti ti-help-hexagon"></i> Créer un quiz</button>
+          <button type="button" data-admin-tab="courses"><i class="ti ti-plus"></i> Ajouter un cours</button>
+          <button type="button" data-admin-tab="content"><i class="ti ti-upload"></i> Ajouter un PDF</button>
+          <button type="button" data-admin-tab="content"><i class="ti ti-video-plus"></i> Ajouter une vidéo</button>
+          <button type="button" data-admin-tab="quizzes"><i class="ti ti-help-hexagon"></i> Créer un quiz</button>
         </div>
       </div>
 
@@ -215,6 +215,13 @@
     </div>
   </section>
 
+  <section class="admin-tab" id="admin-tab-chapters">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Chapitres</h2><span>Organisation du contenu</span></div>
+      <p>Les chapitres sont gérés via les sections dans l'onglet <strong>Contenu du cours</strong>. Cette section permettra prochainement une vue d'ensemble hiérarchique.</p>
+    </div>
+  </section>
+
   <section class="admin-tab" id="admin-tab-students">
     <div class="admin-panel">
       <div class="admin-panel-head"><h2>Étudiants</h2><span>Inscriptions et accès</span></div>
@@ -242,7 +249,6 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>

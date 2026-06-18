@@ -22,7 +22,7 @@
   </button>
   <div class="nav-links" id="navLinks">
     <a href="index.html">Accueil</a>
-    <a href="cours.html">Cours online</a>
+    <a href="cours-online.html">Cours online</a>
     <a href="inscription.html" class="nav-cta">S'inscrire</a>
   </div>
 </nav>
@@ -37,6 +37,28 @@
     </div>
 
     <form class="ai-quiz-card" id="aiQuizForm">
+      <div class="ai-course-auth-header">
+        <p>Déjà un compte ? <button type="button" id="showAiLogin" class="btn-link">Se connecter ici</button></p>
+      </div>
+
+      <div class="quiz-question identity-section">
+        <h2>Vos informations pour créer votre compte</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="aiUserName"><i class="ti ti-user"></i> Nom complet</label>
+            <input type="text" id="aiUserName" name="full_name" placeholder="Ex: Marie Jean" required>
+          </div>
+          <div class="form-group">
+            <label for="aiUserEmail"><i class="ti ti-mail"></i> Email</label>
+            <input type="email" id="aiUserEmail" name="email" placeholder="votre@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="aiUserPassword"><i class="ti ti-key"></i> Créer un mot de passe</label>
+            <input type="password" id="aiUserPassword" name="password" placeholder="Min. 6 caractères" required minlength="6">
+          </div>
+        </div>
+      </div>
+
       <div class="quiz-question">
         <h2>1. C'est quoi l'intelligence artificielle ?</h2>
         <label><input type="radio" name="ai_definition" value="systeme" required> Un système capable d'aider à faire des tâches comme écrire, analyser, traduire ou créer</label>
@@ -86,10 +108,32 @@
         <label><input type="radio" name="learning_attitude" value="copier"> Copier toutes les réponses sans comprendre</label>
       </div>
 
-      <button class="registration-submit" type="submit">
+      <button class="registration-submit" type="submit" id="aiQuizSubmit">
         <i class="ti ti-arrow-right"></i>
-        Suivant
+        S'inscrire et voir mon résultat
       </button>
+    </form>
+  </section>
+
+  <section class="ai-login-screen" id="aiLoginScreen" style="display: none;">
+    <div class="ai-course-hero">
+      <h1>Bon retour !</h1>
+      <p>Connectez-vous pour retrouver votre progression dans le cours d'IA.</p>
+    </div>
+    <form class="ai-quiz-card" id="aiFreeLoginForm">
+      <div class="form-group">
+        <label for="aiLoginEmail"><i class="ti ti-mail"></i> Email</label>
+        <input type="email" id="aiLoginEmail" required>
+      </div>
+      <div class="form-group">
+        <label for="aiLoginPassword"><i class="ti ti-key"></i> Mot de passe</label>
+        <input type="password" id="aiLoginPassword" required>
+      </div>
+      <button class="registration-submit" type="submit">
+        <i class="ti ti-lock-open"></i>
+        Se connecter
+      </button>
+      <p style="text-align: center; margin-top: 1rem;">Pas encore de compte ? <button type="button" id="showAiSignup" class="btn-link">S'inscrire maintenant</button></p>
     </form>
   </section>
 
@@ -148,7 +192,6 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

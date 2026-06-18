@@ -71,56 +71,66 @@ alter table public.courses enable row level security;
 alter table public.course_sections enable row level security;
 alter table public.course_items enable row level security;
 
+drop policy if exists "Public can read published courses" on public.courses;
 create policy "Public can read published courses"
 on public.courses for select
 using (status = 'Publié');
 
+drop policy if exists "Public can read sections" on public.course_sections;
 create policy "Public can read sections"
 on public.course_sections for select
 using (
   exists (
     select 1 from public.courses
     where courses.id = course_sections.course_id
-    and courses.status = 'Publié'
+    and courses.status = 'Publié' -- Only show sections for published courses
   )
 );
 
+drop policy if exists "Public can read course items" on public.course_items;
 create policy "Public can read course items"
 on public.course_items for select
 using (
   exists (
     select 1 from public.courses
     where courses.id = course_items.course_id
-    and courses.status = 'Publié'
+    and courses.status = 'Publié' -- Only show items for published courses
   )
 );
 
 -- Politiques pour les profils
+drop policy if exists "Les utilisateurs peuvent voir leur propre profil" on public.profiles;
 create policy "Les utilisateurs peuvent voir leur propre profil"
 on public.profiles for select
 using (auth.uid() = id);
 
+drop policy if exists "Les admins peuvent voir tous les profils" on public.profiles;
 create policy "Les admins peuvent voir tous les profils"
 on public.profiles for select
 using (public.is_admin());
 
 -- Sécurisation des tables : seul un admin peut modifier les données
+drop policy if exists "Prototype admin can manage courses" on public.courses;
 create policy "Prototype admin can manage courses"
 on public.courses for all
 using (public.is_admin());
 
+drop policy if exists "Prototype admin can manage sections" on public.course_sections;
 create policy "Prototype admin can manage sections"
 on public.course_sections for all
 using (public.is_admin());
 
+drop policy if exists "Prototype admin can manage items" on public.course_items;
 create policy "Prototype admin can manage items"
 on public.course_items for all
 using (public.is_admin());
 
+drop policy if exists "Public can read course files" on storage.objects;
 create policy "Public can read course files"
 on storage.objects for select
 using (bucket_id = 'course-files');
 
+drop policy if exists "Prototype admin can upload course files" on storage.objects;
 create policy "Prototype admin can upload course files"
 on storage.objects for insert
 with check (

@@ -171,39 +171,95 @@ function initRegistrationForm() {
     return;
   }
 
-  courseSelect.addEventListener('change', () => {
+  const handleCourseChange = () => {
     const selectedOption = courseSelect.options[courseSelect.selectedIndex];
-    const price = Number(selectedOption.dataset.price);
+    const price = selectedOption.value ? Number(selectedOption.dataset.price) : null;
 
-    if (!courseSelect.value || !price) {
+    if (selectedOption.value === "" || price === null) {
       priceInfo.style.display = 'none';
-      priceAmount.textContent = '';
       return;
     }
 
-    priceAmount.textContent = `${price.toLocaleString('fr-FR')} HTG`;
-    priceInfo.style.display = 'flex';
-  });
+    if (price === 0) {
+      priceInfo.style.display = 'none';
+      if (freeCourseInfo) freeCourseInfo.style.display = 'flex';
+      if (moncashAlert) moncashAlert.style.display = 'none';
+      if (paymentFields) paymentFields.style.display = 'none';
+      if (transactionId) transactionId.required = false;
+      if (paymentProof) paymentProof.required = false;
+      if (registrationSubmit) {
+        registrationSubmit.innerHTML = '<i class="ti ti-player-play"></i><span>Démarrer le cours</span>';
+      }
+    } else {
+      priceAmount.textContent = `${price.toLocaleString('fr-FR')} HTG`;
+      priceInfo.style.display = 'flex';
+      if (freeCourseInfo) freeCourseInfo.style.display = 'none';
+      if (moncashAlert) moncashAlert.style.display = 'flex';
+      if (paymentFields) paymentFields.style.display = 'grid';
+      if (transactionId) transactionId.required = true;
+      if (paymentProof) paymentProof.required = true;
+      if (registrationSubmit) {
+        registrationSubmit.innerHTML = '<i class="ti ti-send"></i><span>Soumettre l\'inscription</span>';
+      }
+    }
+  };
+
+  courseSelect.addEventListener('change', handleCourseChange);
+  handleCourseChange(); // Initial check
 }
 
-function initAiCourseQuiz() {
+async function initAiCourseQuiz() {
   const quizScreen = document.getElementById('aiQuizScreen');
   const quizForm = document.getElementById('aiQuizForm');
   const welcomeScreen = document.getElementById('aiCourseWelcome');
   const dashboard = document.getElementById('aiCourseDashboard');
   const enterDashboardButton = document.getElementById('enterCourseDashboard');
-  const levelLabel = document.getElementById('aiLevelLabel');
-  const quizScoreLabel = document.getElementById('quizScoreLabel');
-  const quizResultTitle = document.getElementById('quizResultTitle');
-  const quizResultMessage = document.getElementById('quizResultMessage');
 
   if (!quizScreen || !quizForm || !welcomeScreen || !dashboard || !enterDashboardButton) return;
 
-  quizForm.addEventListener('submit', (event) => {
+  const loginScreen = document.getElementById('aiLoginScreen');
+  const showLoginBtn = document.getElementById('showAiLogin');
+  const showSignupBtn = document.getElementById('showAiSignup');
+
+  if (showLoginBtn && loginScreen) {
+    showLoginBtn.addEventListener('click', () => {
+      quizScreen.style.display = 'none';
+      loginScreen.style.display = 'block';
+    });
+  }
+  if (showSignupBtn && loginScreen) {
+    showSignupBtn.addEventListener('click', () => {
+      loginScreen.style.display = 'none';
+      quizScreen.style.display = 'block';
+    });
+  }
+
+  quizForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     if (!quizForm.checkValidity()) {
       quizForm.reportValidity();
+      return;
+    }
+
+    const email = document.getElementById('aiUserEmail').value;
+    const password = document.getElementById('aiUserPassword').value;
+    const fullName = document.getElementById('aiUserName').value;
+
+    const submitBtn = document.getElementById('aiQuizSubmit');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Création du compte...';
+
+    const { error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } }
+    });
+
+    if (authError) {
+      alert("Erreur d'inscription: " + authError.message);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="ti ti-arrow-right"></i> S\'inscrire et voir mon résultat';
       return;
     }
 
@@ -222,35 +278,65 @@ function initAiCourseQuiz() {
       return total + (formData.get(name) === answer ? 1 : 0);
     }, 0);
 
-    if (levelLabel) {
-      levelLabel.textContent = score >= 6 ? 'Base solide' : score >= 3 ? 'Débutant motivé' : 'Nouveau départ';
-    }
-
-    if (quizScoreLabel && quizResultTitle && quizResultMessage) {
-      quizScoreLabel.textContent = `Résultat du QCM : ${score}/7 bonnes réponses`;
-
-      if (score >= 6) {
-        quizResultTitle.textContent = 'Très bon départ';
-        quizResultMessage.textContent = 'Vous comprenez déjà les bases : l’IA est un outil puissant, mais il faut savoir bien la guider et vérifier ses réponses.';
-      } else if (score >= 3) {
-        quizResultTitle.textContent = 'Bon début';
-        quizResultMessage.textContent = 'Vous avez quelques bons réflexes. Ce cours va renforcer les bases : prompt, vérification, usages pratiques et limites de l’IA.';
-      } else {
-        quizResultTitle.textContent = 'Nouveau départ';
-        quizResultMessage.textContent = 'Aucun souci : ce cours commence depuis zéro et va vous guider pas à pas pour comprendre et utiliser l’IA simplement.';
-      }
-    }
-
+    showAiCourseResult(score);
     quizScreen.style.display = 'none';
     welcomeScreen.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  const loginForm = document.getElementById('aiFreeLoginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('aiLoginEmail').value;
+      const password = document.getElementById('aiLoginPassword').value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) alert("Erreur: " + error.message);
+      else {
+        if (loginScreen) loginScreen.style.display = 'none';
+        dashboard.classList.add('active');
+      }
+    });
+  }
 
   enterDashboardButton.addEventListener('click', () => {
     welcomeScreen.classList.remove('active');
     dashboard.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    if (quizScreen) quizScreen.style.display = 'none';
+    if (loginScreen) loginScreen.style.display = 'none';
+    dashboard.classList.add('active');
+  }
+}
+
+function showAiCourseResult(score) {
+  const levelLabel = document.getElementById('aiLevelLabel');
+  const quizScoreLabel = document.getElementById('quizScoreLabel');
+  const quizResultTitle = document.getElementById('quizResultTitle');
+  const quizResultMessage = document.getElementById('quizResultMessage');
+
+  if (levelLabel) {
+    levelLabel.textContent = score >= 6 ? 'Base solide' : score >= 3 ? 'Débutant motivé' : 'Nouveau départ';
+  }
+
+  if (quizScoreLabel && quizResultTitle && quizResultMessage) {
+    quizScoreLabel.textContent = `Résultat du QCM : ${score}/7 bonnes réponses`;
+
+    if (score >= 6) {
+      quizResultTitle.textContent = 'Très bon départ';
+      quizResultMessage.textContent = 'Vous comprenez déjà les bases : l’IA est un outil puissant, mais il faut savoir bien la guider et vérifier ses réponses.';
+    } else if (score >= 3) {
+      quizResultTitle.textContent = 'Bon début';
+      quizResultMessage.textContent = 'Vous avez quelques bons réflexes. Ce cours va renforcer les bases : prompt, vérification, usages pratiques et limites de l’IA.';
+    } else {
+      quizResultTitle.textContent = 'Nouveau départ';
+      quizResultMessage.textContent = 'Aucun souci : ce cours commence depuis zéro et va vous guider pas à pas pour comprendre et utiliser l’IA simplement.';
+    }
+  }
 }
 
 const COURSES_KEY = 'urbvec_courses';
@@ -258,14 +344,21 @@ const ACTIVE_COURSE_KEY = 'urbvec_active_course';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
 
 const defaultCourses = [
-  {
-    id: 'free-ai',
-    title: "Maîtriser l'IA au quotidien",
-    slug: 'cours-gratuit',
-    price: 0,
-    status: 'Publié',
-    description: "Apprendre à utiliser l'intelligence artificielle dans le quotidien."
-  }
+  { id: 'free-ai', title: "Maîtriser l'IA au quotidien", slug: 'cours-gratuit', price: 0, status: 'Publié', description: "Apprendre à utiliser l'intelligence artificielle dans le quotidien." },
+  { id: 'dev-web-moderne', title: "Développement Web Moderne", slug: 'dev-web-moderne', price: 2500, status: 'Publié', description: "Maîtrisez HTML, CSS et JavaScript pour créer des interfaces web professionnelles." },
+  { id: 'gestion-projet-leadership', title: "Gestion de Projet & Leadership", slug: 'gestion-projet-leadership', price: 3000, status: 'Publié', description: "Apprenez les méthodologies agiles et le management d'équipe." },
+  { id: 'python-automatisation', title: "Python & Automatisation", slug: 'python-automatisation', price: 3000, status: 'Publié', description: "Apprenez Python pour automatiser des tâches répétitives." },
+  { id: 'ux-ui-figma', title: "Design UX/UI avec Figma", slug: 'ux-ui-figma', price: 2500, status: 'Publié', description: "Créez des interfaces intuitives avec Figma." },
+  { id: 'marketing-digital-seo', title: "Marketing Digital & SEO", slug: 'marketing-digital-seo', price: 2500, status: 'Publié', description: "Dominez les stratégies de marketing digital et le SEO." },
+  { id: 'react-avance', title: "React Avancé", slug: 'react-avance', price: 4000, status: 'Publié', description: "Maîtrisez React pour construire des applications web modernes." },
+  { id: 'entrepreneuriat-startup', title: "Entrepreneuriat & Startup", slug: 'entrepreneuriat-startup', price: 3500, status: 'Publié', description: "Apprenez à lancer et développer votre startup." },
+  { id: 'intro-gestion-finance', title: "Intro à la Gestion & Finance", slug: 'intro-gestion-finance', price: 2500, status: 'Publié', description: "Maîtrisez les bases de la gestion d'entreprise." },
+  { id: 'data-science-python', title: "Data Science avec Python", slug: 'data-science-python', price: 4500, status: 'Publié', description: "Analysez des données complexes avec Python." },
+  { id: 'branding-design-graphique', title: "Branding & Design Graphique", slug: 'branding-design-graphique', price: 2000, status: 'Publié', description: "Créez des identités visuelles fortes." },
+  { id: 'langues-communication', title: "Langues & Communication", slug: 'langues-communication', price: 1500, status: 'Publié', description: "Perfectionnez votre expression écrite et orale." },
+  { id: 'content-marketing-copywriting', title: "Content Marketing & Copywriting", slug: 'content-marketing-copywriting', price: 2000, status: 'Publié', description: "Écrivez du contenu convaincant." },
+  { id: 'developpement-personnel', title: "Développement Personnel", slug: 'developpement-personnel', price: 1500, status: 'Publié', description: "Boostez votre confiance et gérez votre temps." },
+  { id: 'competences-pratiques', title: "Compétences Pratiques", slug: 'competences-pratiques', price: 1200, status: 'Publié', description: "Maîtrisez les outils informatiques essentiels." }
 ];
 
 const defaultCourseContent = [
@@ -555,7 +648,9 @@ function initAdminCourses() {
   const courseList = document.getElementById('adminCourseList');
   if (!courseForm) return;
 
-  if (!localStorage.getItem(COURSES_KEY)) {
+  const currentCourses = getCourses();
+  // On recharge la liste si elle est vide ou si elle ne contient que l'ancien cours unique
+  if (!localStorage.getItem(COURSES_KEY) || (currentCourses.length === 1 && currentCourses[0].id === 'free-ai')) {
     saveCourses(defaultCourses);
   }
 
@@ -806,7 +901,11 @@ function initAdminTabs() {
       tabButtons.forEach(item => item.classList.remove('active'));
       tabs.forEach(tab => tab.classList.remove('active'));
 
-      button.classList.add('active');
+      // On met à jour le bouton de la sidebar correspondante
+      const sidebarBtn = document.querySelector(`.admin-sidebar [data-admin-tab="${target}"]`);
+      if (sidebarBtn) sidebarBtn.classList.add('active');
+      else button.classList.add('active');
+
       document.getElementById(`admin-tab-${target}`)?.classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -971,9 +1070,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initRegistrationForm();
   initAiCourseQuiz();
   renderStudentCourseOutline();
-  initAdminTabs();
-  initAdminCourses();
-  initAdminCourseBuilder();
+
+  // Initialisations spécifiques à la page d'administration
+  // Elles ne s'exécutent que si l'élément '.admin-sidebar' est présent dans le DOM
+  if (document.querySelector('.admin-sidebar')) {
+    initAdminTabs();
+    initAdminCourses();
+    initAdminCourseBuilder();
+  }
   initOnlineLoginForm(); // Initialize the online login form handler
   
   // Fermer le modal en cliquant dehors
