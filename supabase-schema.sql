@@ -10,6 +10,18 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
+-- Fonction pour vérifier si l'utilisateur est admin sans récursion
+create or replace function public.is_admin()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+    and is_admin = true
+  );
+end;
+$$ language plpgsql security definer;
+
 create table if not exists public.courses (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -90,40 +102,20 @@ using (auth.uid() = id);
 
 create policy "Les admins peuvent voir tous les profils"
 on public.profiles for select
-using (
-  exists (
-    select 1 from public.profiles
-    where id = auth.uid() and is_admin = true
-  )
-);
+using (public.is_admin());
 
 -- Sécurisation des tables : seul un admin peut modifier les données
 create policy "Prototype admin can manage courses"
 on public.courses for all
-using (
-  exists (
-    select 1 from public.profiles
-    where id = auth.uid() and is_admin = true
-  )
-);
+using (public.is_admin());
 
 create policy "Prototype admin can manage sections"
 on public.course_sections for all
-using (
-  exists (
-    select 1 from public.profiles
-    where id = auth.uid() and is_admin = true
-  )
-);
+using (public.is_admin());
 
 create policy "Prototype admin can manage items"
 on public.course_items for all
-using (
-  exists (
-    select 1 from public.profiles
-    where id = auth.uid() and is_admin = true
-  )
-);
+using (public.is_admin());
 
 create policy "Public can read course files"
 on storage.objects for select
@@ -133,10 +125,7 @@ create policy "Prototype admin can upload course files"
 on storage.objects for insert
 with check (
   bucket_id = 'course-files' AND
-  exists (
-    select 1 from public.profiles
-    where id = auth.uid() and is_admin = true
-  )
+  public.is_admin()
 );
 
 -- Fonction pour créer un profil automatiquement à l'inscription

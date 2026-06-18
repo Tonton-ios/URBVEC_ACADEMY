@@ -1,3 +1,5 @@
+// Import the Supabase client
+import { supabase } from './supabase-config.js';
 // Menu hamburger toggle
 function setAppHeight() {
   const visibleHeights = [
@@ -253,7 +255,6 @@ function initAiCourseQuiz() {
 
 const COURSES_KEY = 'urbvec_courses';
 const ACTIVE_COURSE_KEY = 'urbvec_active_course';
-const COURSE_FILES_BUCKET = 'course-files';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
 
 const defaultCourses = [
@@ -353,9 +354,8 @@ function getActiveCourseId() {
   const courses = getCourses();
   const saved = localStorage.getItem(ACTIVE_COURSE_KEY);
   const preferred = courseFromUrl || saved || courses[0]?.id || defaultCourses[0].id;
-  const matchedCourse = courses.find(course => course.id === preferred || course.slug === preferred);
 
-  return matchedCourse ? matchedCourse.id : courses[0].id;
+  return courses.some(course => course.id === preferred) ? preferred : courses[0].id;
 }
 
 function setActiveCourseId(courseId) {
@@ -404,229 +404,6 @@ function readFileAsDataUrl(file) {
     reader.addEventListener('error', () => reject(reader.error));
     reader.readAsDataURL(file);
   });
-}
-
-function getSupabaseClient() {
-  return window.URBVEC_SUPABASE_READY && window.urbvecSupabase ? window.urbvecSupabase : null;
-}
-
-function normalizeCourse(row) {
-  return {
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    price: Number(row.price || 0),
-    status: row.status || 'Brouillon',
-    description: row.description || ''
-  };
-}
-
-function normalizeCourseItem(row) {
-  return {
-    id: row.id,
-    title: row.title,
-    type: row.type || 'document',
-    url: row.url || '',
-    note: row.note || '',
-    fileName: row.file_name || ''
-  };
-}
-
-async function loadCoursesFromSupabase() {
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  const { data, error } = await client
-    .from('courses')
-    .select('id,title,slug,price,status,description')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.warn('Impossible de charger les cours Supabase.', error);
-    return null;
-  }
-
-  const courses = (data || []).map(normalizeCourse);
-  if (courses.length) {
-    saveCourses(courses);
-    const activeCourseId = getActiveCourseId();
-    if (!courses.some(course => course.id === activeCourseId)) {
-      setActiveCourseId(courses[0].id);
-    }
-  }
-
-  return courses;
-}
-
-async function loadCourseContentFromSupabase(courseId = getActiveCourseId()) {
-  const client = getSupabaseClient();
-  if (!client || !courseId) return null;
-
-  const { data: sections, error: sectionsError } = await client
-    .from('course_sections')
-    .select('id,title,position')
-    .eq('course_id', courseId)
-    .order('position', { ascending: true });
-
-  if (sectionsError) {
-    console.warn('Impossible de charger les sections Supabase.', sectionsError);
-    return null;
-  }
-
-  const { data: items, error: itemsError } = await client
-    .from('course_items')
-    .select('id,section_id,title,type,url,note,file_name,position')
-    .eq('course_id', courseId)
-    .order('position', { ascending: true });
-
-  if (itemsError) {
-    console.warn('Impossible de charger les contenus Supabase.', itemsError);
-    return null;
-  }
-
-  const content = (sections || []).map(section => ({
-    id: section.id,
-    title: section.title,
-    items: (items || [])
-      .filter(item => item.section_id === section.id)
-      .map(normalizeCourseItem)
-  }));
-
-  saveCourseContent(content, courseId);
-  return content;
-}
-
-async function syncSupabaseCourseData(courseId = getActiveCourseId()) {
-  if (!getSupabaseClient()) return;
-  await loadCoursesFromSupabase();
-  await loadCourseContentFromSupabase(courseId);
-  renderAdminCourseList();
-  renderAdminCourseBuilder();
-  renderStudentCourseOutline();
-}
-
-async function saveCourseToSupabase(course) {
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  const payload = {
-    title: course.title,
-    slug: course.slug,
-    price: course.price,
-    status: course.status,
-    description: course.description
-  };
-
-  const { data, error } = await client
-    .from('courses')
-    .upsert(payload, { onConflict: 'slug' })
-    .select('id,title,slug,price,status,description')
-    .single();
-
-  if (error) throw error;
-  return normalizeCourse(data);
-}
-
-async function addSectionToSupabase(courseId, title, position) {
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  const { data, error } = await client
-    .from('course_sections')
-    .insert({ course_id: courseId, title, position })
-    .select('id,title')
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-function sanitizeFileName(fileName) {
-  return fileName
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9._-]+/g, '-');
-}
-
-async function uploadCourseFileToSupabase(courseId, file) {
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  const filePath = `${courseId}/${Date.now()}-${sanitizeFileName(file.name)}`;
-  const { error } = await client.storage
-    .from(COURSE_FILES_BUCKET)
-    .upload(filePath, file, { upsert: false });
-
-  if (error) throw error;
-
-  const { data } = client.storage
-    .from(COURSE_FILES_BUCKET)
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
-}
-
-async function addItemToSupabase(item) {
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  const { data, error } = await client
-    .from('course_items')
-    .insert({
-      course_id: item.courseId,
-      section_id: item.sectionId,
-      title: item.title,
-      type: item.type,
-      url: item.url,
-      note: item.note,
-      file_name: item.fileName,
-      position: item.position
-    })
-    .select('id')
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-async function updateSectionInSupabase(sectionId, fields) {
-  const client = getSupabaseClient();
-  if (!client) return;
-  const { error } = await client.from('course_sections').update(fields).eq('id', sectionId);
-  if (error) throw error;
-}
-
-async function updateItemInSupabase(itemId, fields) {
-  const client = getSupabaseClient();
-  if (!client) return;
-  const { error } = await client.from('course_items').update(fields).eq('id', itemId);
-  if (error) throw error;
-}
-
-async function deleteSectionFromSupabase(sectionId) {
-  const client = getSupabaseClient();
-  if (!client) return;
-  const { error } = await client.from('course_sections').delete().eq('id', sectionId);
-  if (error) throw error;
-}
-
-async function deleteItemFromSupabase(itemId) {
-  const client = getSupabaseClient();
-  if (!client) return;
-  const { error } = await client.from('course_items').delete().eq('id', itemId);
-  if (error) throw error;
-}
-
-async function saveSectionOrderToSupabase(content) {
-  const client = getSupabaseClient();
-  if (!client) return;
-  await Promise.all(content.map((section, index) => updateSectionInSupabase(section.id, { position: index })));
-}
-
-async function saveItemOrderToSupabase(section) {
-  const client = getSupabaseClient();
-  if (!client) return;
-  await Promise.all(section.items.map((item, index) => updateItemInSupabase(item.id, { position: index })));
 }
 
 function escapeHtml(value) {
@@ -784,7 +561,7 @@ function initAdminCourses() {
 
   renderAdminCourseList();
 
-  courseForm.addEventListener('submit', async (event) => {
+  courseForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const titleInput = document.getElementById('courseTitle');
     const slugInput = document.getElementById('courseSlug');
@@ -813,29 +590,14 @@ function initAdminCourses() {
         description: descriptionInput.value.trim()
       };
       courses.push(course);
+      saveCourseContent([], course.id);
     }
 
-    try {
-      const savedCourse = await saveCourseToSupabase(course);
-      if (savedCourse) {
-        const nextCourses = courses.filter(item => item.slug !== savedCourse.slug);
-        nextCourses.unshift(savedCourse);
-        saveCourses(nextCourses);
-        setActiveCourseId(savedCourse.id);
-        await loadCourseContentFromSupabase(savedCourse.id);
-      } else {
-        saveCourses(courses);
-        saveCourseContent(getCourseContent(course.id), course.id);
-        setActiveCourseId(course.id);
-      }
-
-      courseForm.reset();
-      renderAdminCourseList();
-      renderAdminCourseBuilder();
-    } catch (error) {
-      console.warn("Impossible d'enregistrer le cours dans Supabase.", error);
-      alert("Le cours n'a pas pu être enregistré dans Supabase. Vérifie la configuration et les policies.");
-    }
+    saveCourses(courses);
+    setActiveCourseId(course.id);
+    courseForm.reset();
+    renderAdminCourseList();
+    renderAdminCourseBuilder();
   });
 
   courseList?.addEventListener('click', (event) => {
@@ -886,7 +648,7 @@ function initAdminCourseBuilder() {
     renderAdminCourseBuilder();
   });
 
-  sectionForm.addEventListener('submit', async (event) => {
+  sectionForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const titleInput = document.getElementById('sectionTitle');
     const title = titleInput.value.trim();
@@ -894,22 +656,10 @@ function initAdminCourseBuilder() {
 
     const activeCourseId = getActiveCourseId();
     const content = getCourseContent(activeCourseId);
-    const section = { id: createId('section'), title, items: [] };
-
-    try {
-      const savedSection = await addSectionToSupabase(activeCourseId, title, content.length);
-      if (savedSection) {
-        section.id = savedSection.id;
-      }
-
-      content.push(section);
-      saveCourseContent(content, activeCourseId);
-      titleInput.value = '';
-      renderAdminCourseBuilder();
-    } catch (error) {
-      console.warn("Impossible d'ajouter la section dans Supabase.", error);
-      alert("La section n'a pas pu être ajoutée dans Supabase.");
-    }
+    content.push({ id: createId('section'), title, items: [] });
+    saveCourseContent(content, activeCourseId);
+    titleInput.value = '';
+    renderAdminCourseBuilder();
   });
 
   itemForm.addEventListener('submit', async (event) => {
@@ -938,8 +688,7 @@ function initAdminCourseBuilder() {
 
       fileName = file.name;
       try {
-        const uploadedUrl = await uploadCourseFileToSupabase(activeCourseId, file);
-        url = uploadedUrl || await readFileAsDataUrl(file);
+        url = await readFileAsDataUrl(file);
       } catch (error) {
         console.warn('Impossible de lire le fichier.', error);
         alert("Le fichier n'a pas pu être ajouté. Essaie avec un autre fichier.");
@@ -947,34 +696,15 @@ function initAdminCourseBuilder() {
       }
     }
 
-    const item = { id: createId('item'), title, type, url, note, fileName };
-
-    try {
-      const savedItem = await addItemToSupabase({
-        courseId: activeCourseId,
-        sectionId,
-        title,
-        type,
-        url,
-        note,
-        fileName,
-        position: targetSection.items.length
-      });
-      if (savedItem) item.id = savedItem.id;
-
-      targetSection.items.push(item);
-      if (!saveCourseContent(content, activeCourseId)) return;
-      itemForm.reset();
-      document.getElementById('itemSection').value = sectionId;
-      updateItemSourceField();
-      renderAdminCourseBuilder();
-    } catch (error) {
-      console.warn("Impossible d'ajouter le contenu dans Supabase.", error);
-      alert("Le contenu n'a pas pu être ajouté dans Supabase.");
-    }
+    targetSection.items.push({ id: createId('item'), title, type, url, note, fileName });
+    if (!saveCourseContent(content, activeCourseId)) return;
+    itemForm.reset();
+    document.getElementById('itemSection').value = sectionId;
+    updateItemSourceField();
+    renderAdminCourseBuilder();
   });
 
-  outline.addEventListener('click', async (event) => {
+  outline.addEventListener('click', (event) => {
     const sectionButton = event.target.closest('[data-delete-section]');
     const editSectionButton = event.target.closest('[data-edit-section]');
     const moveSectionButton = event.target.closest('[data-move-section]');
@@ -986,14 +716,8 @@ function initAdminCourseBuilder() {
 
     if (sectionButton) {
       content = content.filter(section => section.id !== sectionButton.dataset.deleteSection);
-      try {
-        await deleteSectionFromSupabase(sectionButton.dataset.deleteSection);
-        saveCourseContent(content, activeCourseId);
-        renderAdminCourseBuilder();
-      } catch (error) {
-        console.warn('Impossible de supprimer la section Supabase.', error);
-        alert("La section n'a pas pu être supprimée dans Supabase.");
-      }
+      saveCourseContent(content, activeCourseId);
+      renderAdminCourseBuilder();
       return;
     }
 
@@ -1002,28 +726,16 @@ function initAdminCourseBuilder() {
       const title = prompt('Nouveau titre de section', section?.title || '');
       if (!section || !title?.trim()) return;
       section.title = title.trim();
-      try {
-        await updateSectionInSupabase(section.id, { title: section.title });
-        saveCourseContent(content, activeCourseId);
-        renderAdminCourseBuilder();
-      } catch (error) {
-        console.warn('Impossible de modifier la section Supabase.', error);
-        alert("La section n'a pas pu être modifiée dans Supabase.");
-      }
+      saveCourseContent(content, activeCourseId);
+      renderAdminCourseBuilder();
       return;
     }
 
     if (moveSectionButton) {
       const index = content.findIndex(section => section.id === moveSectionButton.dataset.moveSection);
       content = moveArrayItem(content, index, Number(moveSectionButton.dataset.direction));
-      try {
-        await saveSectionOrderToSupabase(content);
-        saveCourseContent(content, activeCourseId);
-        renderAdminCourseBuilder();
-      } catch (error) {
-        console.warn("Impossible d'enregistrer l'ordre des sections Supabase.", error);
-        alert("L'ordre des sections n'a pas pu être enregistré dans Supabase.");
-      }
+      saveCourseContent(content, activeCourseId);
+      renderAdminCourseBuilder();
       return;
     }
 
@@ -1035,14 +747,8 @@ function initAdminCourseBuilder() {
           items: section.items.filter(item => item.id !== itemButton.dataset.deleteItem)
         };
       });
-      try {
-        await deleteItemFromSupabase(itemButton.dataset.deleteItem);
-        saveCourseContent(content, activeCourseId);
-        renderAdminCourseBuilder();
-      } catch (error) {
-        console.warn('Impossible de supprimer le contenu Supabase.', error);
-        alert("Le contenu n'a pas pu être supprimé dans Supabase.");
-      }
+      saveCourseContent(content, activeCourseId);
+      renderAdminCourseBuilder();
       return;
     }
 
@@ -1052,14 +758,8 @@ function initAdminCourseBuilder() {
       const title = prompt('Nouveau titre du contenu', item?.title || '');
       if (!item || !title?.trim()) return;
       item.title = title.trim();
-      try {
-        await updateItemInSupabase(item.id, { title: item.title });
-        saveCourseContent(content, activeCourseId);
-        renderAdminCourseBuilder();
-      } catch (error) {
-        console.warn('Impossible de modifier le contenu Supabase.', error);
-        alert("Le contenu n'a pas pu être modifié dans Supabase.");
-      }
+      saveCourseContent(content, activeCourseId);
+      renderAdminCourseBuilder();
       return;
     }
 
@@ -1072,15 +772,8 @@ function initAdminCourseBuilder() {
           items: moveArrayItem(section.items, index, Number(moveItemButton.dataset.direction))
         };
       });
-      try {
-        const section = content.find(item => item.id === moveItemButton.dataset.sectionId);
-        await saveItemOrderToSupabase(section);
-        saveCourseContent(content, activeCourseId);
-        renderAdminCourseBuilder();
-      } catch (error) {
-        console.warn("Impossible d'enregistrer l'ordre des contenus Supabase.", error);
-        alert("L'ordre des contenus n'a pas pu être enregistré dans Supabase.");
-      }
+      saveCourseContent(content, activeCourseId);
+      renderAdminCourseBuilder();
     }
   });
 
@@ -1202,6 +895,72 @@ function playLogoTransition(redirectUrl) {
   }, 3000);
 }
 
+// Function to handle online course login
+function initOnlineLoginForm() {
+  const loginForm = document.querySelector('.online-login-form');
+  if (!loginForm) return;
+
+  const emailInput = document.getElementById('studentLogin');
+  const passwordInput = document.getElementById('studentPassword');
+  const submitButton = loginForm.querySelector('button[type="submit"]');
+
+  loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!email || !password) {
+      alert('Veuillez entrer votre email et votre mot de passe.');
+      return;
+    }
+
+    submitButton.disabled = true; // Disable button to prevent multiple submissions
+    submitButton.innerHTML = '<i class="ti ti-loader animate-spin"></i> Connexion en cours...'; // Show loading state
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        console.error('Erreur de connexion:', error.message);
+        alert('Erreur de connexion: ' + error.message);
+        return;
+      }
+
+      if (data.user) {
+        // User successfully logged in, now check if they are an admin
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Erreur lors de la récupération du profil:', profileError.message);
+          alert('Erreur lors de la récupération du profil. Veuillez réessayer.');
+          await supabase.auth.signOut(); // Log out the user if profile check fails for security
+          return;
+        }
+
+        if (profileData && profileData.is_admin) {
+          playLogoTransition('admin.html'); // Admin user
+        } else {
+          playLogoTransition('cours-gratuit.html'); // Regular user
+        }
+      }
+    } catch (err) {
+      console.error('Erreur inattendue:', err.message);
+      alert('Une erreur inattendue est survenue. Veuillez réessayer.');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<i class="ti ti-arrow-right"></i> Continuer';
+    }
+  });
+}
+
 // Initialiser au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
   initAppHeight();
@@ -1215,7 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminTabs();
   initAdminCourses();
   initAdminCourseBuilder();
-  syncSupabaseCourseData();
+  initOnlineLoginForm(); // Initialize the online login form handler
   
   // Fermer le modal en cliquant dehors
   const modal = document.getElementById('courseModal');
