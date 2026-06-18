@@ -184,6 +184,53 @@ function initRegistrationForm() {
   });
 }
 
+function initAiCourseQuiz() {
+  const quizScreen = document.getElementById('aiQuizScreen');
+  const quizForm = document.getElementById('aiQuizForm');
+  const welcomeScreen = document.getElementById('aiCourseWelcome');
+  const dashboard = document.getElementById('aiCourseDashboard');
+  const enterDashboardButton = document.getElementById('enterCourseDashboard');
+  const levelLabel = document.getElementById('aiLevelLabel');
+
+  if (!quizScreen || !quizForm || !welcomeScreen || !dashboard || !enterDashboardButton) return;
+
+  quizForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    if (!quizForm.checkValidity()) {
+      quizForm.reportValidity();
+      return;
+    }
+
+    const formData = new FormData(quizForm);
+    const correctAnswers = {
+      prompt_context: 'contexte',
+      ai_verification: 'verifier',
+      image_ai: 'midjourney',
+      daily_task: 'resumer',
+      privacy: 'prive'
+    };
+
+    const score = Object.entries(correctAnswers).reduce((total, [name, answer]) => {
+      return total + (formData.get(name) === answer ? 1 : 0);
+    }, 0);
+
+    if (levelLabel) {
+      levelLabel.textContent = score >= 4 ? 'Base solide' : score >= 2 ? 'Débutant motivé' : 'Nouveau départ';
+    }
+
+    quizScreen.style.display = 'none';
+    welcomeScreen.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  enterDashboardButton.addEventListener('click', () => {
+    welcomeScreen.classList.remove('active');
+    dashboard.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
 function initModalButtons() {
   document.querySelectorAll('[data-modal-close]').forEach(button => {
     button.addEventListener('click', closeCourseModal);
@@ -284,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initClickableCards();
   initModalButtons();
   initRegistrationForm();
+  initAiCourseQuiz();
   
   // Fermer le modal en cliquant dehors
   const modal = document.getElementById('courseModal');

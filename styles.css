@@ -588,6 +588,7 @@
       padding: 4.5rem 2rem;
     }
     .ai-quiz-screen,
+    .ai-course-welcome,
     .ai-course-dashboard {
       max-width: 1080px;
       margin: 0 auto;
@@ -651,11 +652,48 @@
       margin-top: 2px;
       flex-shrink: 0;
     }
+    .ai-course-welcome,
     .ai-course-dashboard {
       display: none;
     }
+    .ai-course-welcome.active,
     .ai-course-dashboard.active {
       display: block;
+    }
+    .course-welcome-card {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 2.25rem;
+      text-align: center;
+      box-shadow: 0 18px 50px rgba(4,44,83,0.08);
+    }
+    .course-welcome-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: var(--urb-blue-light);
+      color: var(--urb-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 36px;
+    }
+    .course-welcome-card h1 {
+      color: var(--urb-blue-dark);
+      font-size: 36px;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .course-welcome-card p {
+      color: #5f6f82;
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 620px;
+      margin: 0 auto 1.5rem;
     }
     .dashboard-welcome {
       display: grid;
@@ -875,6 +913,10 @@
       .free-course-player { grid-template-columns: 1fr; }
       .free-course-video { min-height: 320px; }
       .free-course-content h1 { font-size: 26px; }
+      .dashboard-welcome,
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .dashboard-panel { position: static; }
+      .course-welcome-card h1 { font-size: 28px; }
       
       .footer-inner { grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 2rem 0; }
       .footer-brand { grid-column: 1 / -1; }
@@ -932,6 +974,17 @@
       .free-course-content { padding: 1rem; border-radius: 10px; }
       .free-course-content h1 { font-size: 22px; }
       .lesson-actions { flex-direction: column; }
+      .ai-course-page { padding: 2rem 1rem; }
+      .ai-course-hero h1,
+      .dashboard-welcome h1,
+      .course-welcome-card h1 { font-size: 24px; }
+      .ai-quiz-card,
+      .course-welcome-card,
+      .dashboard-welcome,
+      .dashboard-panel,
+      .modules-panel { padding: 1rem; border-radius: 10px; }
+      .module-card { grid-template-columns: 1fr; }
+      .module-card button { width: 100%; }
       
       .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
       .footer-brand p { font-size: 12px; }

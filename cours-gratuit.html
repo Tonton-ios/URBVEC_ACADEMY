@@ -38,45 +38,60 @@
 
     <form class="ai-quiz-card" id="aiQuizForm">
       <div class="quiz-question">
-        <h2>1. As-tu déjà utilisé une IA dans ta vie ?</h2>
-        <label><input type="radio" name="ai_use" value="souvent" required> Oui, souvent</label>
-        <label><input type="radio" name="ai_use" value="quelques-fois"> Oui, quelques fois</label>
-        <label><input type="radio" name="ai_use" value="jamais"> Non, jamais</label>
+        <h2>1. Quand tu utilises une IA, quelle information l'aide le plus à mieux répondre ?</h2>
+        <label><input type="radio" name="prompt_context" value="contexte" required> Le contexte, l'objectif et le format attendu</label>
+        <label><input type="radio" name="prompt_context" value="bonjour"> Un simple bonjour</label>
+        <label><input type="radio" name="prompt_context" value="majuscule"> Écrire toute la demande en majuscules</label>
       </div>
 
       <div class="quiz-question">
-        <h2>2. Selon toi, l'IA remplacera les humains ?</h2>
-        <label><input type="radio" name="ai_replace" value="tout" required> Oui, dans presque tous les métiers</label>
-        <label><input type="radio" name="ai_replace" value="aider"> Non, elle aidera surtout les humains à mieux travailler</label>
-        <label><input type="radio" name="ai_replace" value="aucune-idee"> Je ne sais pas encore</label>
+        <h2>2. Quelle est la meilleure attitude face à une réponse donnée par l'IA ?</h2>
+        <label><input type="radio" name="ai_verification" value="verifier" required> Vérifier les informations importantes avant de les utiliser</label>
+        <label><input type="radio" name="ai_verification" value="copier"> Copier directement sans relire</label>
+        <label><input type="radio" name="ai_verification" value="croire"> Croire que l'IA a toujours raison</label>
       </div>
 
       <div class="quiz-question">
-        <h2>3. Quelle IA est dédiée à la création d'image ?</h2>
+        <h2>3. Quel outil est principalement connu pour générer des images avec l'IA ?</h2>
         <label><input type="radio" name="image_ai" value="midjourney" required> Midjourney</label>
-        <label><input type="radio" name="image_ai" value="excel"> Microsoft Excel</label>
-        <label><input type="radio" name="image_ai" value="whatsapp"> WhatsApp</label>
+        <label><input type="radio" name="image_ai" value="gmail"> Gmail</label>
+        <label><input type="radio" name="image_ai" value="calculatrice"> Calculatrice</label>
       </div>
 
       <div class="quiz-question">
-        <h2>4. Pour quelle activité veux-tu surtout utiliser l'IA ?</h2>
-        <label><input type="radio" name="ai_goal" value="travail" required> Travailler plus vite</label>
-        <label><input type="radio" name="ai_goal" value="creation"> Créer du contenu ou des images</label>
-        <label><input type="radio" name="ai_goal" value="apprendre"> Apprendre et mieux comprendre mes cours</label>
+        <h2>4. Dans ton quotidien, quelle tâche l'IA peut t'aider à faire plus vite ?</h2>
+        <label><input type="radio" name="daily_task" value="resumer" required> Résumer un texte et préparer une réponse</label>
+        <label><input type="radio" name="daily_task" value="deviner"> Deviner ton mot de passe</label>
+        <label><input type="radio" name="daily_task" value="payer"> Faire un paiement sans ton accord</label>
       </div>
 
       <div class="quiz-question">
-        <h2>5. Qu'est-ce qu'un bon prompt ?</h2>
-        <label><input type="radio" name="prompt" value="clair" required> Une consigne claire avec un objectif et du contexte</label>
-        <label><input type="radio" name="prompt" value="court"> Un seul mot envoyé à l'IA</label>
-        <label><input type="radio" name="prompt" value="secret"> Un code secret réservé aux experts</label>
+        <h2>5. Quelle donnée faut-il éviter de partager avec une IA publique ?</h2>
+        <label><input type="radio" name="privacy" value="prive" required> Mot de passe, numéro de carte ou informations privées</label>
+        <label><input type="radio" name="privacy" value="idee"> Une idée générale de projet</label>
+        <label><input type="radio" name="privacy" value="question"> Une question sur un sujet de cours</label>
       </div>
 
       <button class="registration-submit" type="submit">
-        <i class="ti ti-checkup-list"></i>
-        Voir mon dashboard
+        <i class="ti ti-arrow-right"></i>
+        Suivant
       </button>
     </form>
+  </section>
+
+  <section class="ai-course-welcome" id="aiCourseWelcome" aria-live="polite">
+    <div class="course-welcome-card">
+      <div class="course-welcome-icon">
+        <i class="ti ti-sparkles"></i>
+      </div>
+      <div class="section-eyebrow">Bienvenue au cours de</div>
+      <h1>Maîtriser l'IA au quotidien</h1>
+      <p>Vous allez apprendre à utiliser l'intelligence artificielle pour mieux écrire, rechercher, résumer, créer des idées, générer des images et travailler plus efficacement tout en gardant un esprit critique.</p>
+      <button class="registration-submit" type="button" id="enterCourseDashboard">
+        <i class="ti ti-layout-dashboard"></i>
+        Accéder au dashboard du cours
+      </button>
+    </div>
   </section>
 
   <section class="ai-course-dashboard" id="aiCourseDashboard" aria-live="polite">
