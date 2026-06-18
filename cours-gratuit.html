@@ -22,7 +22,7 @@
   </button>
   <div class="nav-links" id="navLinks">
     <a href="index.html">Accueil</a>
-    <a href="cours-online.html">Cours online</a>
+    <a href="cours.html">Cours online</a>
     <a href="inscription.html" class="nav-cta">S'inscrire</a>
   </div>
 </nav>
@@ -105,7 +105,7 @@
         <strong id="quizResultTitle">Bon début</strong>
         <p id="quizResultMessage">Vous êtes prêt à commencer les bases de l'IA.</p>
       </div>
-      <p>Vous allez apprendre à utiliser l'intelligence artificielle pour mieux écrire, rechercher, résumer, créer des idées, générer des images et travailler plus efficacement tout en gardant un esprit critique.</p>
+      <p>Vous allez apprendre à utiliser l'intelligence artificielle dans votre quotidien pour mieux écrire, rechercher, résumer, créer des idées, générer des images et travailler plus efficacement tout en gardant un esprit critique.</p>
       <button class="registration-submit" type="button" id="enterCourseDashboard">
         <i class="ti ti-layout-dashboard"></i>
         Accéder au dashboard du cours
@@ -130,71 +130,25 @@
       <aside class="dashboard-panel">
         <h2>Progression</h2>
         <div class="lesson-progress">
-          <span>Module 1 sur 5</span>
+          <span>Section 1 sur 1</span>
           <div><strong></strong></div>
         </div>
         <div class="dashboard-stats">
-          <span><i class="ti ti-book-2"></i> 5 modules</span>
-          <span><i class="ti ti-clock"></i> 2h 30 min</span>
+          <span><i class="ti ti-book-2"></i> 0 sections</span>
+          <span><i class="ti ti-file-stack"></i> 0 contenus</span>
           <span><i class="ti ti-certificate"></i> Attestation</span>
         </div>
       </aside>
 
-      <div class="modules-panel">
-        <div class="module-card active">
-          <div class="module-icon"><i class="ti ti-sparkles"></i></div>
-          <div>
-            <span>Module 1</span>
-            <h2>Comprendre l'IA simplement</h2>
-            <p>Découvrir ce qu'est l'IA, ses limites et les bons réflexes pour l'utiliser.</p>
-          </div>
-          <button type="button"><i class="ti ti-player-play"></i></button>
-        </div>
-
-        <div class="module-card">
-          <div class="module-icon"><i class="ti ti-message-2-code"></i></div>
-          <div>
-            <span>Module 2</span>
-            <h2>Écrire des prompts efficaces</h2>
-            <p>Formuler des demandes claires pour obtenir de meilleures réponses.</p>
-          </div>
-          <button type="button"><i class="ti ti-lock"></i></button>
-        </div>
-
-        <div class="module-card">
-          <div class="module-icon"><i class="ti ti-photo-ai"></i></div>
-          <div>
-            <span>Module 3</span>
-            <h2>Créer des images avec l'IA</h2>
-            <p>Comprendre les outils visuels et préparer une bonne demande d'image.</p>
-          </div>
-          <button type="button"><i class="ti ti-lock"></i></button>
-        </div>
-
-        <div class="module-card">
-          <div class="module-icon"><i class="ti ti-briefcase"></i></div>
-          <div>
-            <span>Module 4</span>
-            <h2>Utiliser l'IA au travail</h2>
-            <p>Résumer, organiser, écrire, planifier et gagner du temps au quotidien.</p>
-          </div>
-          <button type="button"><i class="ti ti-lock"></i></button>
-        </div>
-
-        <div class="module-card">
-          <div class="module-icon"><i class="ti ti-shield-check"></i></div>
-          <div>
-            <span>Module 5</span>
-            <h2>Utiliser l'IA avec responsabilité</h2>
-            <p>Vérifier les réponses, protéger ses données et éviter les erreurs courantes.</p>
-          </div>
-          <button type="button"><i class="ti ti-lock"></i></button>
-        </div>
+      <div class="modules-panel" id="studentCourseOutline">
+        <p class="student-empty-section">Chargement du contenu du cours...</p>
       </div>
     </div>
   </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

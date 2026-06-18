@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - URBVEC ACADEMY 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo">
+    <div>URBVEC <span>ADMIN</span></div>
+  </div>
+  <nav class="admin-nav">
+    <button class="admin-nav-btn active" type="button" data-admin-tab="overview"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="courses"><i class="ti ti-book-2"></i> Cours</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="content"><i class="ti ti-folders"></i> Contenu du cours</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="chapters"><i class="ti ti-list-details"></i> Chapitres</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="resources"><i class="ti ti-file-stack"></i> Ressources</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="quizzes"><i class="ti ti-help-circle"></i> Quiz</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="students"><i class="ti ti-users"></i> Étudiants</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="payments"><i class="ti ti-receipt"></i> Paiements</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="settings"><i class="ti ti-settings"></i> Paramètres</button>
+  </nav>
+</aside>
+
+<main class="admin-main">
+  <header class="admin-topbar">
+    <div>
+      <div class="section-eyebrow">Espace administrateur</div>
+      <h1>Gestion URBVEC Academy</h1>
+    </div>
+    <a href="index.html" class="admin-exit"><i class="ti ti-arrow-left"></i> Retour au site</a>
+  </header>
+
+  <section class="admin-tab active" id="admin-tab-overview">
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card"><i class="ti ti-users"></i><span>Étudiants</span><strong>0</strong></div>
+      <div class="admin-stat-card"><i class="ti ti-book-2"></i><span>Cours</span><strong>1</strong></div>
+      <div class="admin-stat-card"><i class="ti ti-file-stack"></i><span>Ressources</span><strong>21</strong></div>
+      <div class="admin-stat-card"><i class="ti ti-cash"></i><span>Paiements</span><strong>0</strong></div>
+    </div>
+
+    <div class="admin-grid-two">
+      <div class="admin-panel">
+        <div class="admin-panel-head">
+          <h2>Actions rapides</h2>
+          <span>Gestion quotidienne</span>
+        </div>
+        <div class="admin-action-list">
+          <button type="button"><i class="ti ti-plus"></i> Ajouter un cours</button>
+          <button type="button"><i class="ti ti-upload"></i> Ajouter un PDF</button>
+          <button type="button"><i class="ti ti-video-plus"></i> Ajouter une vidéo</button>
+          <button type="button"><i class="ti ti-help-hexagon"></i> Créer un quiz</button>
+        </div>
+      </div>
+
+      <div class="admin-panel">
+        <div class="admin-panel-head">
+          <h2>État du système</h2>
+          <span>Supabase</span>
+        </div>
+        <div class="admin-system-list">
+          <span><i class="ti ti-circle-check"></i> Schéma de base de données préparé</span>
+          <span><i class="ti ti-alert-circle"></i> Auth admin à connecter</span>
+          <span><i class="ti ti-alert-circle"></i> Storage PDF/vidéo à configurer</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-courses">
+    <div class="admin-panel">
+      <div class="admin-panel-head">
+        <h2>Créer ou modifier un cours</h2>
+        <span>Gratuit ou payant</span>
+      </div>
+      <form class="admin-form" id="adminCourseForm">
+        <div class="admin-form-grid">
+          <div class="form-group"><label for="courseTitle"><i class="ti ti-book"></i> Titre</label><input id="courseTitle" type="text" placeholder="Maîtriser l'IA au quotidien" required></div>
+          <div class="form-group"><label for="courseSlug"><i class="ti ti-link"></i> Slug</label><input id="courseSlug" type="text" placeholder="maitriser-ia-quotidien"></div>
+          <div class="form-group"><label for="coursePrice"><i class="ti ti-cash"></i> Prix HTG</label><input id="coursePrice" type="number" placeholder="0"></div>
+          <div class="form-group"><label for="courseStatus"><i class="ti ti-toggle-right"></i> Statut</label><select id="courseStatus"><option>Publié</option><option>Brouillon</option><option>Archivé</option></select></div>
+        </div>
+        <div class="form-group"><label for="courseDescription"><i class="ti ti-align-left"></i> Description</label><textarea id="courseDescription" rows="4" placeholder="Description du cours"></textarea></div>
+        <button class="admin-primary-btn" type="submit"><i class="ti ti-device-floppy"></i> Enregistrer le cours</button>
+      </form>
+    </div>
+    <div class="admin-panel admin-course-builder">
+      <div class="admin-panel-head">
+        <h2>Liste des cours</h2>
+        <span>Chaque cours a son propre contenu</span>
+      </div>
+      <div class="admin-course-list" id="adminCourseList"></div>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-content">
+    <div class="admin-panel admin-course-picker">
+      <div>
+        <div class="section-eyebrow">Cours sélectionné</div>
+        <h2 id="selectedCourseLabel">Maîtriser l'IA au quotidien</h2>
+      </div>
+      <div class="form-group">
+        <label for="contentCourseSelect"><i class="ti ti-book-2"></i> Ajouter du contenu à</label>
+        <select id="contentCourseSelect"></select>
+      </div>
+    </div>
+
+    <div class="admin-content-layout">
+      <div class="admin-panel">
+        <div class="admin-panel-head">
+          <h2>Ajouter une section</h2>
+          <span>Comme une séance ou un module</span>
+        </div>
+        <form class="admin-form" id="courseSectionForm">
+          <div class="form-group">
+            <label for="sectionTitle"><i class="ti ti-heading"></i> Titre de la section</label>
+            <input id="sectionTitle" type="text" placeholder="Séance 1 ____ Lundi 1 juin 2026" required>
+          </div>
+          <button class="admin-primary-btn" type="submit"><i class="ti ti-plus"></i> Ajouter la section</button>
+        </form>
+      </div>
+
+      <div class="admin-panel">
+        <div class="admin-panel-head">
+          <h2>Ajouter un contenu</h2>
+          <span>Document, lien, vidéo ou quiz</span>
+        </div>
+        <form class="admin-form" id="courseItemForm">
+          <div class="admin-form-grid">
+            <div class="form-group">
+              <label for="itemSection"><i class="ti ti-list"></i> Section</label>
+              <select id="itemSection" required></select>
+            </div>
+            <div class="form-group">
+              <label for="itemType"><i class="ti ti-file"></i> Type</label>
+              <select id="itemType">
+                <option value="document">Document</option>
+                <option value="pdf">PDF</option>
+                <option value="ppt">PPT</option>
+                <option value="doc">DOC</option>
+                <option value="video">Vidéo</option>
+                <option value="quiz">Quiz</option>
+                <option value="link">Lien</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="itemTitle"><i class="ti ti-file-text"></i> Titre du contenu</label>
+              <input id="itemTitle" type="text" placeholder="Document 1" required>
+            </div>
+            <div class="form-group" id="itemFileGroup">
+              <label for="itemFile"><i class="ti ti-upload"></i> Fichier</label>
+              <input id="itemFile" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx,video/*">
+            </div>
+            <div class="form-group" id="itemUrlGroup">
+              <label for="itemUrl"><i class="ti ti-link"></i> Lien</label>
+              <input id="itemUrl" type="url" placeholder="https://...">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="itemNote"><i class="ti ti-align-left"></i> Note courte</label>
+            <input id="itemNote" type="text" placeholder="PPTX, ouvert 10 juin, devoir, etc.">
+          </div>
+          <button class="admin-primary-btn" type="submit"><i class="ti ti-plus"></i> Ajouter le contenu</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="admin-panel admin-course-builder">
+      <div class="admin-panel-head">
+        <h2>Aperçu du contenu</h2>
+        <span>Visible dans l'interface élève</span>
+      </div>
+      <div class="admin-course-actions">
+        <button class="admin-secondary-btn" type="button" id="resetCourseContent"><i class="ti ti-restore"></i> Réinitialiser l'exemple</button>
+        <a class="admin-secondary-btn" href="cours-gratuit.html" id="previewSelectedCourse"><i class="ti ti-eye"></i> Voir côté élève</a>
+      </div>
+      <div class="admin-course-outline" id="adminCourseOutline"></div>
+    </div>
+  </section>
+
+
+
+  <section class="admin-tab" id="admin-tab-resources">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Ressources</h2><span>PDF, vidéos et liens</span></div>
+      <form class="admin-form">
+        <div class="admin-form-grid">
+          <div class="form-group"><label for="resourceChapter"><i class="ti ti-list"></i> Chapitre</label><select id="resourceChapter"><option>Chapitre 1</option><option>Chapitre 2</option><option>Chapitre 3</option><option>Chapitre 4</option><option>Chapitre 5</option><option>Chapitre 6</option><option>Chapitre 7</option></select></div>
+          <div class="form-group"><label for="resourceType"><i class="ti ti-file"></i> Type</label><select id="resourceType"><option>Vidéo</option><option>PDF</option><option>Lien</option></select></div>
+          <div class="form-group"><label for="resourceTitle"><i class="ti ti-heading"></i> Titre</label><input id="resourceTitle" type="text" placeholder="Support PDF du chapitre"></div>
+          <div class="form-group"><label for="resourceUrl"><i class="ti ti-link"></i> URL</label><input id="resourceUrl" type="url" placeholder="https://..."></div>
+        </div>
+        <button class="admin-primary-btn" type="button"><i class="ti ti-plus"></i> Ajouter</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-quizzes">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Quiz</h2><span>Questions après chaque chapitre</span></div>
+      <form class="admin-form">
+        <div class="admin-form-grid">
+          <div class="form-group"><label for="quizChapter"><i class="ti ti-list"></i> Chapitre</label><select id="quizChapter"><option>Chapitre 1</option><option>Chapitre 2</option><option>Chapitre 3</option><option>Chapitre 4</option><option>Chapitre 5</option><option>Chapitre 6</option><option>Chapitre 7</option></select></div>
+          <div class="form-group"><label for="quizCorrect"><i class="ti ti-circle-check"></i> Bonne réponse</label><input id="quizCorrect" type="text" placeholder="Option A"></div>
+        </div>
+        <div class="form-group"><label for="quizQuestion"><i class="ti ti-help-circle"></i> Question</label><textarea id="quizQuestion" rows="3" placeholder="Écrire la question"></textarea></div>
+        <div class="admin-form-grid"><input type="text" placeholder="Option A"><input type="text" placeholder="Option B"><input type="text" placeholder="Option C"><input type="text" placeholder="Option D"></div>
+        <button class="admin-primary-btn" type="button"><i class="ti ti-device-floppy"></i> Enregistrer la question</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-students">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Étudiants</h2><span>Inscriptions et accès</span></div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Nom</th><th>Email / Téléphone</th><th>Cours</th><th>Accès</th></tr></thead><tbody><tr><td colspan="4">Aucun étudiant chargé pour le moment.</td></tr></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-payments">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Paiements MonCash</h2><span>Preuves à valider</span></div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Étudiant</th><th>Cours</th><th>Transaction</th><th>Statut</th></tr></thead><tbody><tr><td colspan="4">Aucun paiement en attente.</td></tr></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-settings">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Paramètres</h2><span>Sécurité et Supabase</span></div>
+      <div class="admin-system-list">
+        <span><i class="ti ti-database"></i> Config publique : <code>supabase-config.js</code></span>
+        <span><i class="ti ti-shield-lock"></i> Ne jamais mettre la clé service role dans le navigateur.</span>
+        <span><i class="ti ti-file-database"></i> Schéma SQL : <code>supabase-schema.sql</code></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
