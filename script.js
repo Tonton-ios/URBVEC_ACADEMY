@@ -191,6 +191,9 @@ function initAiCourseQuiz() {
   const dashboard = document.getElementById('aiCourseDashboard');
   const enterDashboardButton = document.getElementById('enterCourseDashboard');
   const levelLabel = document.getElementById('aiLevelLabel');
+  const quizScoreLabel = document.getElementById('quizScoreLabel');
+  const quizResultTitle = document.getElementById('quizResultTitle');
+  const quizResultMessage = document.getElementById('quizResultMessage');
 
   if (!quizScreen || !quizForm || !welcomeScreen || !dashboard || !enterDashboardButton) return;
 
@@ -204,11 +207,13 @@ function initAiCourseQuiz() {
 
     const formData = new FormData(quizForm);
     const correctAnswers = {
-      prompt_context: 'contexte',
-      ai_verification: 'verifier',
-      image_ai: 'midjourney',
-      daily_task: 'resumer',
-      privacy: 'prive'
+      ai_definition: 'systeme',
+      replace_people: 'outil',
+      prompt_definition: 'instruction',
+      good_prompt: 'clair',
+      ai_mistakes: 'oui',
+      privacy: 'prive',
+      learning_attitude: 'pratiquer'
     };
 
     const score = Object.entries(correctAnswers).reduce((total, [name, answer]) => {
@@ -216,7 +221,22 @@ function initAiCourseQuiz() {
     }, 0);
 
     if (levelLabel) {
-      levelLabel.textContent = score >= 4 ? 'Base solide' : score >= 2 ? 'Débutant motivé' : 'Nouveau départ';
+      levelLabel.textContent = score >= 6 ? 'Base solide' : score >= 3 ? 'Débutant motivé' : 'Nouveau départ';
+    }
+
+    if (quizScoreLabel && quizResultTitle && quizResultMessage) {
+      quizScoreLabel.textContent = `Résultat du QCM : ${score}/7 bonnes réponses`;
+
+      if (score >= 6) {
+        quizResultTitle.textContent = 'Très bon départ';
+        quizResultMessage.textContent = 'Vous comprenez déjà les bases : l’IA est un outil puissant, mais il faut savoir bien la guider et vérifier ses réponses.';
+      } else if (score >= 3) {
+        quizResultTitle.textContent = 'Bon début';
+        quizResultMessage.textContent = 'Vous avez quelques bons réflexes. Ce cours va renforcer les bases : prompt, vérification, usages pratiques et limites de l’IA.';
+      } else {
+        quizResultTitle.textContent = 'Nouveau départ';
+        quizResultMessage.textContent = 'Aucun souci : ce cours commence depuis zéro et va vous guider pas à pas pour comprendre et utiliser l’IA simplement.';
+      }
     }
 
     quizScreen.style.display = 'none';
