@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Étudiant - URBVEC ACADEMY 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img">
+    <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Accueil</a>
+    <a href="cours-online.html">Connexion</a>
+    <a href="cours.html">Cours</a>
+    <a href="inscription.html" class="nav-cta">Acheter un cours</a>
+  </div>
+</nav>
+
+<!-- PAID STUDENT DASHBOARD -->
+<main class="paid-student-dashboard active" id="paidStudentDashboard" aria-live="polite">
+  <section class="paid-dashboard-hero">
+    <div>
+      <div class="section-eyebrow">Dashboard étudiant</div>
+      <h1>Bienvenue, <span id="studentFirstName">étudiant</span></h1>
+      <p>Consultez vos cours payés, ouvrez chaque espace de cours, retrouvez vos documents, quiz et informations personnelles.</p>
+    </div>
+    <a href="inscription.html" class="paid-dashboard-action">
+      <i class="ti ti-plus"></i>
+      Acheter un autre cours
+    </a>
+  </section>
+
+  <section class="paid-dashboard-grid">
+    <aside class="paid-course-sidebar">
+      <div class="student-profile-card">
+        <div class="student-avatar" id="studentAvatar">ET</div>
+        <div>
+          <h2 id="studentFullName">Étudiant URBVEC</h2>
+          <p id="studentEmail">email@exemple.com</p>
+          <p id="studentPhone">Téléphone non ajouté</p>
+        </div>
+      </div>
+
+      <div class="paid-sidebar-actions">
+        <button type="button" class="paid-sidebar-btn active" data-student-view="Overview">
+          <i class="ti ti-layout-dashboard"></i>
+          Vue d'ensemble
+        </button>
+        <button type="button" class="paid-sidebar-btn" data-student-view="profile">
+          <i class="ti ti-user-cog"></i>
+          Mon profil
+        </button>
+      </div>
+
+      <div class="paid-panel-head">
+        <h2>Mes formations</h2>
+        <span id="paidCourseCount">0 cours</span>
+      </div>
+      <div class="paid-courses-list" id="paidCoursesList">
+        <p class="student-empty-section">Aucun cours acheté pour le moment.</p>
+      </div>
+    </aside>
+
+    <section class="paid-course-workspace" id="paidCourseWorkspace">
+      <div class="student-dashboard-view active" id="studentOverviewView">
+        <div class="paid-course-top">
+          <div>
+            <span class="paid-course-status"><i class="ti ti-circle-check"></i> Accès étudiant</span>
+            <h2>Tableau de bord</h2>
+            <p>Choisissez un cours payé pour entrer dans son espace et consulter les contenus disponibles.</p>
+          </div>
+          <div class="paid-course-meta" id="paidDashboardStats">
+            <span><i class="ti ti-book-2"></i> 0 cours</span>
+            <span><i class="ti ti-clipboard-check"></i> 0 quiz</span>
+          </div>
+        </div>
+
+        <div class="student-overview-body">
+          <div class="student-course-cards" id="studentPaidCourseCards">
+            <div class="paid-empty-state">
+              <i class="ti ti-lock-open"></i>
+              <h3>Aucun cours payant actif</h3>
+              <p>Après votre achat, votre formation apparaîtra dans ce dashboard étudiant.</p>
+              <a href="inscription.html" class="btn-primary">Choisir une formation</a>
+            </div>
+          </div>
+
+          <div class="student-activity-panel">
+            <div class="paid-panel-head">
+              <h2>Activités récentes</h2>
+              <span>Historique</span>
+            </div>
+            <div id="studentRecentActivity">
+              <p class="student-empty-section">Aucune activité pour le moment.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="student-dashboard-view" id="studentCourseView" style="display: none;">
+        <div class="paid-course-top">
+          <div>
+            <button type="button" class="student-back-btn" id="backToStudentOverview">
+              <i class="ti ti-arrow-left"></i>
+              Mes cours
+            </button>
+            <span class="paid-course-status"><i class="ti ti-circle-check"></i> Accès étudiant</span>
+            <h2 id="paidCourseTitle">Sélectionnez un cours</h2>
+            <p id="paidCourseDescription">Vos contenus, documents et exercices apparaîtront ici après validation.</p>
+          </div>
+          <div class="paid-course-meta" id="paidCourseMeta">
+            <span><i class="ti ti-book-2"></i> 0 sections</span>
+            <span><i class="ti ti-file-stack"></i> 0 contenus</span>
+          </div>
+        </div>
+
+        <div class="student-course-tabs">
+          <button type="button" class="active" data-course-tab="content"><i class="ti ti-folders"></i> Contenus</button>
+          <button type="button" data-course-tab="quiz"><i class="ti ti-clipboard-check"></i> Quiz passés</button>
+        </div>
+
+        <div class="paid-course-outline active" id="paidCourseOutline" data-course-panel="content"></div>
+        <div class="paid-course-outline" id="paidCourseQuizPanel" data-course-panel="quiz"></div>
+      </div>
+      
+      <div class="student-dashboard-view" id="studentProfileView" style="display: none;">
+        <div class="paid-course-top">
+          <div>
+            <span class="paid-course-status"><i class="ti ti-user-cog"></i> Informations personnelles</span>
+            <h2>Mon profil</h2>
+            <p>Consultez vos informations et mettez à jour votre mot de passe.</p>
+          </div>
+        </div>
+
+        <div class="student-profile-grid">
+          <form class="student-profile-form" id="studentInfoForm">
+            <h3>Mes informations</h3>
+            <div class="form-group">
+              <label for="profileFullName"><i class="ti ti-user"></i> Nom complet</label>
+              <input type="text" id="profileFullName" placeholder="Votre nom complet">
+            </div>
+            <div class="form-group">
+              <label for="profileEmail"><i class="ti ti-mail"></i> Email</label>
+              <input type="email" id="profileEmail" placeholder="votre@email.com">
+            </div>
+            <div class="form-group">
+              <label for="profilePhone"><i class="ti ti-brand-whatsapp"></i> Téléphone / WhatsApp</label>
+              <input type="tel" id="profilePhone" placeholder="+509 0000-0000">
+            </div>
+            <button type="submit" class="registration-submit">
+              <i class="ti ti-device-floppy"></i>
+              Enregistrer mes infos
+            </button>
+          </form>
+
+          <form class="student-profile-form" id="studentPasswordForm">
+            <h3>Changer mon mot de passe</h3>
+            <div class="form-group">
+              <label for="currentPassword"><i class="ti ti-lock"></i> Mot de passe actuel</label>
+              <input type="password" id="currentPassword" placeholder="Mot de passe actuel">
+            </div>
+            <div class="form-group">
+              <label for="newPassword"><i class="ti ti-key"></i> Nouveau mot de passe</label>
+              <input type="password" id="newPassword" placeholder="Min. 6 caractères" minlength="6">
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword"><i class="ti ti-key"></i> Confirmer</label>
+              <input type="password" id="confirmPassword" placeholder="Répétez le nouveau mot de passe" minlength="6">
+            </div>
+            <button type="submit" class="registration-submit">
+              <i class="ti ti-shield-check"></i>
+              Mettre à jour
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module" src="script.js"></script>
+</body>
+</html>

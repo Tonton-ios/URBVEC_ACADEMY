@@ -1507,6 +1507,419 @@
       padding-bottom: 0.5rem;
     }
 
+    /* Student Dashboard Specific Styles */
+    .student-profile-card {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+    }
+    .student-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--urb-blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .student-profile-card h2 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+      margin-bottom: 0.25rem;
+    }
+    .student-profile-card p {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    .paid-sidebar-actions {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .paid-sidebar-btn {
+      width: 100%;
+      min-height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: #fbfdff;
+      color: var(--urb-blue-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 15px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .paid-sidebar-btn:hover,
+    .paid-sidebar-btn.active {
+      background: var(--urb-blue-light);
+      color: var(--urb-blue);
+    }
+    .paid-sidebar-btn i {
+      font-size: 20px;
+    }
+    .paid-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .paid-panel-head h2 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+    }
+    .paid-panel-head span {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 700;
+    }
+    .paid-courses-list {
+      display: grid;
+      gap: 8px;
+    }
+    .paid-course-item {
+      width: 100%;
+      min-height: 52px;
+      border: 1px solid #dbe4ee;
+      border-radius: 10px;
+      background: #fbfdff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 15px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--urb-blue-dark);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .paid-course-item:hover,
+    .paid-course-item.active {
+      border-color: var(--urb-blue);
+      background: var(--urb-blue-light);
+    }
+    .paid-course-item strong {
+      color: var(--urb-gold);
+      font-size: 13px;
+    }
+    .paid-dashboard-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 18px 50px rgba(4,44,83,0.08);
+    }
+    .paid-dashboard-hero h1 {
+      font-size: 32px;
+      color: var(--urb-blue-dark);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .paid-dashboard-hero p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .paid-dashboard-action {
+      min-width: 200px;
+      min-height: 50px;
+      border-radius: 8px;
+      background: var(--urb-gold);
+      color: var(--urb-blue-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .paid-dashboard-action:hover {
+      background: var(--urb-gold-dark);
+      color: #fff;
+    }
+    .paid-dashboard-grid {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .paid-course-sidebar {
+      position: sticky;
+      top: 88px; /* Adjust based on nav height */
+    }
+    .paid-course-workspace {
+      display: grid;
+      gap: 1.5rem;
+    }
+    .student-dashboard-view {
+      display: none; /* Hidden by default, activated by JS */
+    }
+    .student-dashboard-view.active {
+      display: block;
+    }
+    .paid-course-top {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .paid-course-top h2 {
+      font-size: 26px;
+      color: var(--urb-blue-dark);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .paid-course-top p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .paid-course-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f6e56;
+      background: #e8f8f1;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
+    }
+    .paid-course-status i {
+      font-size: 16px;
+    }
+    .paid-course-meta {
+      display: flex;
+      gap: 1.5rem;
+      flex-shrink: 0;
+    }
+    .paid-course-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .paid-course-meta i {
+      font-size: 18px;
+      color: var(--urb-blue);
+    }
+    .student-back-btn {
+      background: none;
+      border: none;
+      color: var(--urb-blue);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 1rem;
+    }
+    .student-back-btn:hover {
+      text-decoration: underline;
+    }
+    .student-course-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .student-course-tabs button {
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 8px;
+      border: 1px solid #dbe4ee;
+      background: #fbfdff;
+      color: var(--urb-blue-dark);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .student-course-tabs button:hover,
+    .student-course-tabs button.active {
+      background: var(--urb-blue-light);
+      border-color: var(--urb-blue);
+      color: var(--urb-blue);
+    }
+    .student-overview-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .student-course-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .student-course-card {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .student-course-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .student-course-card h3 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+      line-height: 1.3;
+    }
+    .student-course-card .course-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #e8f8f1;
+      color: #0f6e56;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .student-course-card p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .student-course-card .btn-primary {
+      width: fit-content;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 0.5rem;
+    }
+    .paid-empty-state {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+      grid-column: 1 / -1; /* Span full width */
+    }
+    .paid-empty-state i {
+      font-size: 48px;
+      color: var(--urb-blue);
+      margin-bottom: 1rem;
+    }
+    .paid-empty-state h3 {
+      font-size: 22px;
+      color: var(--urb-blue-dark);
+      margin-bottom: 0.75rem;
+    }
+    .paid-empty-state p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .student-activity-panel {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+    }
+    .activity-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e4ebf3;
+      font-size: 14px;
+      color: #334155;
+    }
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+    .activity-item small {
+      font-size: 12px;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .student-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .student-profile-form {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+    }
+    .student-profile-form h3 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+      margin-bottom: 1.2rem;
+    }
+
+    /* Responsive adjustments for dashboard */
+    @media (max-width: 768px) {
+      .paid-dashboard-hero { flex-direction: column; align-items: flex-start; }
+      .paid-dashboard-action { width: 100%; }
+      .paid-dashboard-grid { grid-template-columns: 1fr; }
+      .paid-course-sidebar { position: static; }
+      .paid-course-top { flex-direction: column; align-items: flex-start; }
+      .paid-course-meta { width: 100%; justify-content: space-between; }
+      .student-overview-body { grid-template-columns: 1fr; }
+      .student-course-cards { grid-template-columns: 1fr; }
+      .student-profile-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .paid-dashboard-hero { padding: 1.5rem; }
+      .paid-dashboard-hero h1 { font-size: 26px; }
+      .paid-course-top { padding: 1.2rem; }
+      .paid-course-top h2 { font-size: 22px; }
+      .paid-course-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .paid-sidebar-btn, .paid-course-item { padding: 0 12px; font-size: 13px; }
+      .student-profile-card { padding: 1rem; }
+      .student-profile-card h2 { font-size: 16px; }
+      .student-profile-form { padding: 1.2rem; }
+      .student-profile-form h3 { font-size: 16px; }
+    }
+
     /* FOOTER */
     .footer { background: #020d1a; padding: 3.5rem 2rem 1.5rem; }
     .footer-inner {

@@ -28,112 +28,154 @@
 </nav>
 
 <!-- FREE AI COURSE -->
-<main class="ai-course-page">
-  <section class="ai-quiz-screen" id="aiQuizScreen">
-    <div class="ai-course-hero">
-      <div class="section-eyebrow">Cours gratuit · Compétences Pratiques</div>
-      <h1>Maîtriser l'IA au quotidien</h1>
-      <p>Avant de commencer, répondez à quelques questions rapides. Elles permettent de situer votre niveau et de démarrer le cours avec le bon contexte.</p>
+<main class="ai-course-page free-ai-signup-page">
+  <section class="ai-quiz-screen free-ai-auth" id="aiQuizScreen">
+    <div class="free-ai-intro">
+      <div class="free-ai-badge">
+        <i class="ti ti-sparkles"></i>
+        Cours gratuit
+      </div>
+      <h1>Apprenez à utiliser l'IA simplement.</h1>
+      <p>Créez votre accès gratuit, répondez à un petit quiz d'orientation, puis entrez directement dans le cours.</p>
+      <div class="free-ai-points" aria-label="Avantages du cours gratuit">
+        <span><i class="ti ti-clock-hour-4"></i> Accès immédiat</span>
+        <span><i class="ti ti-message-chatbot"></i> Bases de l'IA</span>
+        <span><i class="ti ti-shield-check"></i> Apprentissage guidé</span>
+      </div>
     </div>
 
-    <form class="ai-quiz-card" id="aiQuizForm">
-      <div class="ai-course-auth-header">
-        <p>Déjà un compte ? <button type="button" id="showAiLogin" class="btn-link">Se connecter ici</button></p>
-      </div>
+    <form class="ai-quiz-card free-ai-card" id="aiQuizForm">
+      <div id="aiFormStepAccount">
+        <div class="free-ai-card-head">
+          <div class="section-eyebrow">Inscription rapide</div>
+          <h2>Créer mon accès</h2>
+          <p>Aucun paiement requis. Vos informations servent seulement à garder votre progression.</p>
+        </div>
 
-      <div class="quiz-question identity-section">
-        <h2>Vos informations pour créer votre compte</h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="aiUserName"><i class="ti ti-user"></i> Nom complet</label>
-            <input type="text" id="aiUserName" name="full_name" placeholder="Ex: Marie Jean" required>
+        <div class="free-ai-card-body">
+          <div class="form-grid free-ai-form-grid">
+            <div class="form-group">
+              <label for="aiUserName"><i class="ti ti-user"></i> Nom complet</label>
+              <input type="text" id="aiUserName" name="full_name" placeholder="Ex: Marie Jean" required>
+            </div>
+            <div class="form-group">
+              <label for="aiUserEmail"><i class="ti ti-mail"></i> Email</label>
+              <input type="email" id="aiUserEmail" name="email" placeholder="votre@email.com" required>
+            </div>
+            <div class="form-group">
+              <label for="aiUserPhone"><i class="ti ti-brand-whatsapp"></i> Téléphone / WhatsApp</label>
+              <input type="tel" id="aiUserPhone" name="phone" placeholder="+509 0000-0000" required>
+            </div>
+            <div class="form-group">
+              <label for="aiUserPassword"><i class="ti ti-key"></i> Créer un mot de passe</label>
+              <input type="password" id="aiUserPassword" name="password" placeholder="Min. 6 caractères" required minlength="6">
+            </div>
           </div>
-          <div class="form-group">
-            <label for="aiUserEmail"><i class="ti ti-mail"></i> Email</label>
-            <input type="email" id="aiUserEmail" name="email" placeholder="votre@email.com" required>
+
+          <div class="free-ai-note">
+            <i class="ti ti-gift"></i>
+            <span>Gratuit aujourd'hui, sans MonCash ni preuve de paiement.</span>
           </div>
-          <div class="form-group">
-            <label for="aiUserPassword"><i class="ti ti-key"></i> Créer un mot de passe</label>
-            <input type="password" id="aiUserPassword" name="password" placeholder="Min. 6 caractères" required minlength="6">
-          </div>
+
+          <button type="button" class="registration-submit free-ai-submit" id="aiBtnNextToQuiz">
+            <span>Continuer vers le quiz</span>
+            <i class="ti ti-arrow-right"></i>
+          </button>
+
+          <p class="free-ai-switch">
+            Déjà un compte ? <button type="button" id="showAiLogin" class="btn-link" style="font-size: 14px;">Se connecter ici</button>
+          </p>
         </div>
       </div>
 
-      <div class="quiz-question">
-        <h2>1. C'est quoi l'intelligence artificielle ?</h2>
-        <label><input type="radio" name="ai_definition" value="systeme" required> Un système capable d'aider à faire des tâches comme écrire, analyser, traduire ou créer</label>
-        <label><input type="radio" name="ai_definition" value="humain"> Une personne cachée derrière l'ordinateur</label>
-        <label><input type="radio" name="ai_definition" value="internet"> Un autre nom pour Internet</label>
-      </div>
+      <div id="aiFormStepQuiz" class="free-ai-quiz-step">
+        <div class="free-ai-card-head">
+          <div class="section-eyebrow">Étape 2 sur 2</div>
+          <h2>Petit quiz d'orientation</h2>
+          <p>Quelques questions rapides pour personnaliser votre départ.</p>
+        </div>
 
-      <div class="quiz-question">
-        <h2>2. Est-ce que l'IA va remplacer tous les humains ?</h2>
-        <label><input type="radio" name="replace_people" value="outil" required> Non, elle va surtout aider ceux qui savent bien l'utiliser</label>
-        <label><input type="radio" name="replace_people" value="tous"> Oui, elle va remplacer tout le monde</label>
-        <label><input type="radio" name="replace_people" value="jamais"> Non, elle ne changera aucun métier</label>
-      </div>
+        <div class="free-ai-card-body free-ai-quiz-list">
+          <div class="quiz-question">
+            <h2>1. C'est quoi l'intelligence artificielle ?</h2>
+            <label><input type="radio" name="ai_definition" value="systeme" required> Un système capable d'aider à faire des tâches comme écrire, analyser, traduire ou créer</label>
+            <label><input type="radio" name="ai_definition" value="humain"> Une personne cachée derrière l'ordinateur</label>
+            <label><input type="radio" name="ai_definition" value="internet"> Un autre nom pour Internet</label>
+          </div>
 
-      <div class="quiz-question">
-        <h2>3. Qu'est-ce qu'un prompt ?</h2>
-        <label><input type="radio" name="prompt_definition" value="instruction" required> Une instruction ou une question qu'on donne à l'IA</label>
-        <label><input type="radio" name="prompt_definition" value="motdepasse"> Un mot de passe secret</label>
-        <label><input type="radio" name="prompt_definition" value="image"> Une image créée par l'IA</label>
-      </div>
+          <div class="quiz-question">
+            <h2>2. Est-ce que l'IA va remplacer tous les humains ?</h2>
+            <label><input type="radio" name="replace_people" value="outil" required> Non, elle va surtout aider ceux qui savent bien l'utiliser</label>
+            <label><input type="radio" name="replace_people" value="tous"> Oui, elle va remplacer tout le monde</label>
+            <label><input type="radio" name="replace_people" value="jamais"> Non, elle ne changera aucun métier</label>
+          </div>
 
-      <div class="quiz-question">
-        <h2>4. Quelle demande donnera sûrement une meilleure réponse ?</h2>
-        <label><input type="radio" name="good_prompt" value="clair" required> Explique-moi l'IA en 5 phrases simples avec un exemple concret</label>
-        <label><input type="radio" name="good_prompt" value="vague"> Parle-moi</label>
-        <label><input type="radio" name="good_prompt" value="mot"> IA</label>
-      </div>
+          <div class="quiz-question">
+            <h2>3. Qu'est-ce qu'un prompt ?</h2>
+            <label><input type="radio" name="prompt_definition" value="instruction" required> Une instruction ou une question qu'on donne à l'IA</label>
+            <label><input type="radio" name="prompt_definition" value="motdepasse"> Un mot de passe secret</label>
+            <label><input type="radio" name="prompt_definition" value="image"> Une image créée par l'IA</label>
+          </div>
 
-      <div class="quiz-question">
-        <h2>5. Est-ce que l'IA peut se tromper ?</h2>
-        <label><input type="radio" name="ai_mistakes" value="oui" required> Oui, il faut vérifier les informations importantes</label>
-        <label><input type="radio" name="ai_mistakes" value="non"> Non, elle a toujours raison</label>
-        <label><input type="radio" name="ai_mistakes" value="jamais"> Non, elle ne fait jamais d'erreurs</label>
-      </div>
+          <div class="quiz-question">
+            <h2>4. Quelle demande donnera sûrement une meilleure réponse ?</h2>
+            <label><input type="radio" name="good_prompt" value="clair" required> Explique-moi l'IA en 5 phrases simples avec un exemple concret</label>
+            <label><input type="radio" name="good_prompt" value="vague"> Parle-moi</label>
+            <label><input type="radio" name="good_prompt" value="mot"> IA</label>
+          </div>
 
-      <div class="quiz-question">
-        <h2>6. Quelle information ne faut-il pas écrire dans une IA publique ?</h2>
-        <label><input type="radio" name="privacy" value="prive" required> Mot de passe, code bancaire ou document confidentiel</label>
-        <label><input type="radio" name="privacy" value="idee"> Une idée générale</label>
-        <label><input type="radio" name="privacy" value="question"> Une question de cours</label>
-      </div>
+          <div class="quiz-question">
+            <h2>5. Est-ce que l'IA peut se tromper ?</h2>
+            <label><input type="radio" name="ai_mistakes" value="oui" required> Oui, il faut vérifier les informations importantes</label>
+            <label><input type="radio" name="ai_mistakes" value="non"> Non, elle a toujours raison</label>
+            <label><input type="radio" name="ai_mistakes" value="jamais"> Non, elle ne fait jamais d'erreurs</label>
+          </div>
 
-      <div class="quiz-question">
-        <h2>7. Pour bien apprendre l'IA, quelle attitude est la plus utile ?</h2>
-        <label><input type="radio" name="learning_attitude" value="pratiquer" required> Pratiquer, tester, corriger et poser de meilleures questions</label>
-        <label><input type="radio" name="learning_attitude" value="peur"> Avoir peur et ne jamais essayer</label>
-        <label><input type="radio" name="learning_attitude" value="copier"> Copier toutes les réponses sans comprendre</label>
-      </div>
+          <div class="quiz-question">
+            <h2>6. Quelle information ne faut-il pas écrire dans une IA publique ?</h2>
+            <label><input type="radio" name="privacy" value="prive" required> Mot de passe, code bancaire ou document confidentialisé</label>
+            <label><input type="radio" name="privacy" value="idee"> Une idée générale</label>
+            <label><input type="radio" name="privacy" value="question"> Une question de cours</label>
+          </div>
 
-      <button class="registration-submit" type="submit" id="aiQuizSubmit">
-        <i class="ti ti-arrow-right"></i>
-        S'inscrire et voir mon résultat
-      </button>
+          <div class="quiz-question">
+            <h2>7. Pour bien apprendre l'IA, quelle attitude est la plus utile ?</h2>
+            <label><input type="radio" name="learning_attitude" value="pratiquer" required> Pratiquer, tester, corriger et poser de meilleures questions</label>
+            <label><input type="radio" name="learning_attitude" value="peur"> Avoir peur et ne jamais essayer</label>
+            <label><input type="radio" name="learning_attitude" value="copier"> Copier toutes les réponses sans comprendre</label>
+          </div>
+
+          <button class="registration-submit" type="submit" id="aiQuizSubmit">
+            <i class="ti ti-arrow-right"></i>
+            <span>S'inscrire et voir mon résultat</span>
+          </button>
+        </div>
+      </div>
     </form>
   </section>
 
-  <section class="ai-login-screen" id="aiLoginScreen" style="display: none;">
-    <div class="ai-course-hero">
-      <h1>Bon retour !</h1>
-      <p>Connectez-vous pour retrouver votre progression dans le cours d'IA.</p>
-    </div>
-    <form class="ai-quiz-card" id="aiFreeLoginForm">
-      <div class="form-group">
-        <label for="aiLoginEmail"><i class="ti ti-mail"></i> Email</label>
-        <input type="email" id="aiLoginEmail" required>
+  <section class="ai-login-screen free-ai-login" id="aiLoginScreen">
+    <form class="ai-quiz-card free-ai-card" id="aiFreeLoginForm">
+      <div class="free-ai-card-head">
+        <div class="section-eyebrow">Connexion</div>
+        <h2>Bon retour !</h2>
+        <p>Connectez-vous pour retrouver votre progression dans le cours d'IA.</p>
       </div>
-      <div class="form-group">
-        <label for="aiLoginPassword"><i class="ti ti-key"></i> Mot de passe</label>
-        <input type="password" id="aiLoginPassword" required>
+      <div class="free-ai-card-body">
+        <div class="form-group">
+          <label for="aiLoginEmail"><i class="ti ti-mail"></i> Email</label>
+          <input type="email" id="aiLoginEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="aiLoginPassword"><i class="ti ti-key"></i> Mot de passe</label>
+          <input type="password" id="aiLoginPassword" required>
+        </div>
+        <button class="registration-submit" type="submit">
+          <i class="ti ti-lock-open"></i>
+          Se connecter
+        </button>
+        <p class="free-ai-switch">Pas encore de compte ? <button type="button" id="showAiSignup" class="btn-link">S'inscrire maintenant</button></p>
       </div>
-      <button class="registration-submit" type="submit">
-        <i class="ti ti-lock-open"></i>
-        Se connecter
-      </button>
-      <p style="text-align: center; margin-top: 1rem;">Pas encore de compte ? <button type="button" id="showAiSignup" class="btn-link">S'inscrire maintenant</button></p>
     </form>
   </section>
 
@@ -191,7 +233,23 @@
   </section>
 </main>
 
+<!-- FOOTER -->
+<footer class="footer" style="background: var(--urb-blue-dark);">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo" style="margin-bottom: 0.75rem;">
+        <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img" style="width: 32px; height: 32px;">
+        <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+      </div>
+      <p>La plateforme de formation en ligne de référence pour les professionnels haïtiens et la diaspora. Apprenez, grandissez, réussissez.</p>
+    </div>
+   
+  <div class="footer-bottom">
+    © 2026 URBVEC Academy. Tous droits réservés. · Fait avec passion pour l'éducation 🇭🇹
+  </div>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>

@@ -1,6 +1,17 @@
 // Import the Supabase client
 import { supabase } from './supabase-config.js';
+
 // Menu hamburger toggle
+
+// Helper to get initials for avatar
+function getInitials(fullName) {
+  if (!fullName) return 'ET'; // Default for Étudiant
+  const parts = fullName.split(' ').filter(Boolean);
+  if (parts.length === 0) return 'ET';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
 function setAppHeight() {
   const visibleHeights = [
     window.innerHeight,
@@ -138,12 +149,13 @@ function initRegistrationForm() {
   const transactionId = document.getElementById('transactionId');
   const paymentProof = document.getElementById('paymentProof');
 
-  if (!registrationForm || !courseSelect || !priceInfo || !priceAmount) return;
+  if (!registrationForm) return;
 
   const params = new URLSearchParams(window.location.search);
   const isFreeMode = params.get('mode') === 'gratuit';
 
   if (isFreeMode) {
+    if (courseSelect) {
     courseSelect.required = false;
     courseSelect.closest('.form-group').style.display = 'none';
     priceInfo.style.display = 'none';
@@ -155,6 +167,7 @@ function initRegistrationForm() {
     if (paymentProof) paymentProof.required = false;
     if (registrationSubmit) {
       registrationSubmit.innerHTML = '<i class="ti ti-player-play"></i><span>Démarrer le cours</span>';
+    }
     }
 
     registrationForm.addEventListener('submit', (event) => {
@@ -170,6 +183,8 @@ function initRegistrationForm() {
 
     return;
   }
+
+  if (!courseSelect || !priceInfo || !priceAmount) return;
 
   const handleCourseChange = () => {
     const selectedOption = courseSelect.options[courseSelect.selectedIndex];
@@ -206,9 +221,38 @@ function initRegistrationForm() {
 
   courseSelect.addEventListener('change', handleCourseChange);
   handleCourseChange(); // Initial check
+
+  registrationForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    if (!registrationForm.checkValidity()) {
+      registrationForm.reportValidity();
+      return;
+    }
+
+    const selectedCourseId = courseSelect.value;
+    const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+    const price = selectedOption.value ? Number(selectedOption.dataset.price) : null;
+    const fullName = document.getElementById('fullName')?.value.trim();
+    const email = document.getElementById('email')?.value.trim();
+    const phone = document.getElementById('phone')?.value.trim();
+
+    if (!selectedCourseId) return;
+
+    setActiveCourseId(selectedCourseId);
+    saveStudentProfile({ fullName, email, phone });
+
+    if (price === 0) {
+      playLogoTransition('cours-gratuit.html');
+      return;
+    }
+
+    savePurchasedCourseId(selectedCourseId);
+    playLogoTransition('dashboard-etudiant.html');
+  });
 }
 
-async function initAiCourseQuiz() {
+async function initAiCourseQuiz() { 
   const quizScreen = document.getElementById('aiQuizScreen');
   const quizForm = document.getElementById('aiQuizForm');
   const welcomeScreen = document.getElementById('aiCourseWelcome');
@@ -221,6 +265,44 @@ async function initAiCourseQuiz() {
   const showLoginBtn = document.getElementById('showAiLogin');
   const showSignupBtn = document.getElementById('showAiSignup');
 
+  const stepAccount = document.getElementById('aiFormStepAccount');
+  const stepQuiz = document.getElementById('aiFormStepQuiz');
+  const btnNextToQuiz = document.getElementById('aiBtnNextToQuiz');
+
+  const showSignupFlow = () => {
+    quizScreen.style.display = 'block'; // Ensure quiz screen is visible for signup flow
+    quizScreen.classList.add('active'); // Assuming 'active' class controls visibility
+    if (loginScreen) loginScreen.style.display = 'none';
+    welcomeScreen.classList.remove('active');
+    dashboard.classList.remove('active');
+    if (stepAccount) stepAccount.style.display = 'block';
+    if (stepQuiz) stepQuiz.style.display = 'none';
+  };
+
+  if (quizScreen && quizForm) showSignupFlow(); // Only show signup flow if on the quiz page
+
+  if (btnNextToQuiz && stepAccount && stepQuiz) {
+    btnNextToQuiz.addEventListener('click', () => {
+      const nameInp = document.getElementById('aiUserName');
+      const emailInp = document.getElementById('aiUserEmail');
+      const phoneInp = document.getElementById('aiUserPhone');
+      const passInp = document.getElementById('aiUserPassword');
+      
+      if (!nameInp.value.trim() || !emailInp.checkValidity() || !phoneInp.value.trim() || passInp.value.length < 6) {
+        if (!nameInp.value.trim()) nameInp.reportValidity();
+        else if (!emailInp.checkValidity()) emailInp.reportValidity();
+        else if (!phoneInp.value.trim()) phoneInp.reportValidity();
+        else passInp.reportValidity();
+        return;
+      }
+
+      stepAccount.style.display = 'none';
+      stepQuiz.style.display = 'block';
+      // document.querySelector('.ai-course-auth-header').style.display = 'none'; // This element was removed
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
   if (showLoginBtn && loginScreen) {
     showLoginBtn.addEventListener('click', () => {
       quizScreen.style.display = 'none';
@@ -229,8 +311,8 @@ async function initAiCourseQuiz() {
   }
   if (showSignupBtn && loginScreen) {
     showSignupBtn.addEventListener('click', () => {
-      loginScreen.style.display = 'none';
-      quizScreen.style.display = 'block';
+      // When switching from login to signup, reset to account step
+      showSignupFlow();
     });
   }
 
@@ -245,24 +327,6 @@ async function initAiCourseQuiz() {
     const email = document.getElementById('aiUserEmail').value;
     const password = document.getElementById('aiUserPassword').value;
     const fullName = document.getElementById('aiUserName').value;
-
-    const submitBtn = document.getElementById('aiQuizSubmit');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Création du compte...';
-
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } }
-    });
-
-    if (authError) {
-      alert("Erreur d'inscription: " + authError.message);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="ti ti-arrow-right"></i> S\'inscrire et voir mon résultat';
-      return;
-    }
-
     const formData = new FormData(quizForm);
     const correctAnswers = {
       ai_definition: 'systeme',
@@ -278,10 +342,30 @@ async function initAiCourseQuiz() {
       return total + (formData.get(name) === answer ? 1 : 0);
     }, 0);
 
+    const submitBtn = document.getElementById('aiQuizSubmit');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Création du compte...';
+
+    try {
+      const { error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName, phone: phone } } // Pass phone number here
+      });
+
+      if (authError) {
+        console.warn("Inscription Supabase non bloquante pour le cours gratuit:", authError.message);
+      }
+    } catch (error) {
+      console.warn("Inscription Supabase indisponible pour le cours gratuit:", error);
+    }
+
     showAiCourseResult(score);
     quizScreen.style.display = 'none';
     welcomeScreen.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="ti ti-arrow-right"></i><span>S\'inscrire et voir mon résultat</span>';
   });
 
   const loginForm = document.getElementById('aiFreeLoginForm');
@@ -305,12 +389,7 @@ async function initAiCourseQuiz() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    if (quizScreen) quizScreen.style.display = 'none';
-    if (loginScreen) loginScreen.style.display = 'none';
-    dashboard.classList.add('active');
-  }
+  renderStudentCourseOutline();
 }
 
 function showAiCourseResult(score) {
@@ -341,6 +420,9 @@ function showAiCourseResult(score) {
 
 const COURSES_KEY = 'urbvec_courses';
 const ACTIVE_COURSE_KEY = 'urbvec_active_course';
+const PURCHASED_COURSES_KEY = 'urbvec_purchased_courses';
+const STUDENT_PROFILE_KEY = 'urbvec_student_profile';
+const STUDENT_ACTIVITY_KEY = 'urbvec_student_activity';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
 
 const defaultCourses = [
@@ -453,6 +535,61 @@ function getActiveCourseId() {
 
 function setActiveCourseId(courseId) {
   localStorage.setItem(ACTIVE_COURSE_KEY, courseId);
+}
+
+function getPurchasedCourseIds() {
+  try {
+    const saved = localStorage.getItem(PURCHASED_COURSES_KEY);
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('Impossible de lire les cours achetés.', error);
+    return [];
+  }
+}
+
+function savePurchasedCourseId(courseId) {
+  if (!courseId || courseId === 'free-ai') return;
+  const courses = getCourses();
+  const course = courses.find(item => item.id === courseId);
+  if (!course || Number(course.price || 0) <= 0) return;
+
+  const purchasedIds = getPurchasedCourseIds();
+  if (!purchasedIds.includes(courseId)) {
+    localStorage.setItem(PURCHASED_COURSES_KEY, JSON.stringify([...purchasedIds, courseId]));
+  }
+}
+
+function getStudentProfile() {
+  try {
+    const saved = localStorage.getItem(STUDENT_PROFILE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch (error) {
+    console.warn('Impossible de lire le profil étudiant.', error);
+    return {};
+  }
+}
+
+function saveStudentProfile(profile) {
+  const nextProfile = { ...getStudentProfile(), ...profile };
+  localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(nextProfile));
+  return nextProfile;
+}
+
+function getStudentActivity() {
+  try {
+    const saved = localStorage.getItem(STUDENT_ACTIVITY_KEY);
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('Impossible de lire les activités étudiant.', error);
+    return [];
+  }
+}
+
+function saveStudentActivity(activity) {
+  const activities = getStudentActivity();
+  localStorage.setItem(STUDENT_ACTIVITY_KEY, JSON.stringify([activity, ...activities].slice(0, 12)));
 }
 
 function getCourseContentKey(courseId = getActiveCourseId()) {
@@ -574,6 +711,92 @@ function renderStudentCourseOutline() {
       </div>
     </article>
   `).join('');
+}
+
+function renderCourseOutlineMarkup(content) {
+  return content.map((section, sectionIndex) => `
+    <article class="student-course-section">
+      <button class="course-section-toggle" type="button" aria-label="Ouvrir ou fermer la section">
+        <i class="ti ti-chevron-down"></i>
+      </button>
+      <div class="student-section-body">
+        <h2>${escapeHtml(section.title)}</h2>
+        <div class="student-resource-list">
+          ${section.items.map(item => `
+            <a class="student-resource-row" href="${escapeHtml(item.url || '#')}" ${item.url ? 'target="_blank" rel="noopener"' : ''} ${item.fileName ? `download="${escapeHtml(item.fileName)}"` : ''}>
+              <i class="ti ${getCourseItemIcon(item.type)}"></i>
+              <span>${escapeHtml(item.title)}</span>
+              ${item.note && item.note !== 'Done' ? `<strong>${escapeHtml(item.note)}</strong>` : ''}
+              ${sectionIndex === 0 && item.note === 'Done' ? '<em><i class="ti ti-check"></i> Done</em>' : ''}
+            </a>
+          `).join('') || '<p class="student-empty-section">Aucun contenu pour le moment.</p>'}
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+function getPurchasedCourses() {
+  const purchasedIds = getPurchasedCourseIds();
+  const courses = getCourses();
+  return purchasedIds
+    .map(courseId => courses.find(course => course.id === courseId))
+    .filter(course => course && Number(course.price || 0) > 0);
+}
+
+function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
+  const dashboard = document.getElementById('paidStudentDashboard');
+  const courseList = document.getElementById('paidCoursesList');
+  const courseCount = document.getElementById('paidCourseCount');
+  const courseTitle = document.getElementById('paidCourseTitle');
+  const courseDescription = document.getElementById('paidCourseDescription');
+  const courseMeta = document.getElementById('paidCourseMeta');
+  const outline = document.getElementById('paidCourseOutline');
+
+  if (!dashboard || !courseList || !courseCount || !courseTitle || !courseDescription || !courseMeta || !outline) return;
+
+  const purchasedCourses = getPurchasedCourses();
+  const activeCourse = purchasedCourses.find(course => course.id === selectedCourseId) || purchasedCourses[0];
+  courseCount.textContent = `${purchasedCourses.length} cours`;
+
+  if (!purchasedCourses.length) {
+    courseList.innerHTML = '<p class="student-empty-section">Aucun cours acheté pour le moment.</p>';
+    courseTitle.textContent = 'Aucun cours payant actif';
+    courseDescription.textContent = 'Achetez une formation pour débloquer un dashboard étudiant complet.';
+    courseMeta.innerHTML = '<span><i class="ti ti-book-2"></i> 0 sections</span><span><i class="ti ti-file-stack"></i> 0 contenus</span>';
+    outline.innerHTML = `
+      <div class="paid-empty-state">
+        <i class="ti ti-lock-open"></i>
+        <h3>Aucun cours payant actif</h3>
+        <p>Après validation de votre paiement, votre formation apparaîtra dans ce dashboard étudiant.</p>
+        <a href="inscription.html" class="btn-primary">Choisir une formation</a>
+      </div>
+    `;
+    return;
+  }
+
+  setActiveCourseId(activeCourse.id);
+  const content = getCourseContent(activeCourse.id);
+  const sectionCount = content.length || 0;
+  const itemCount = content.reduce((total, section) => total + section.items.length, 0);
+
+  courseList.innerHTML = purchasedCourses.map(course => `
+    <button type="button" class="paid-course-item ${course.id === activeCourse.id ? 'active' : ''}" data-paid-course="${course.id}">
+      <span>${escapeHtml(course.title)}</span>
+      <strong>${Number(course.price || 0).toLocaleString('fr-FR')} HTG</strong>
+    </button>
+  `).join('');
+
+  courseTitle.textContent = activeCourse.title;
+  courseDescription.textContent = activeCourse.description || 'Votre formation payante avec contenus, documents et exercices.';
+  courseMeta.innerHTML = `
+    <span><i class="ti ti-book-2"></i> ${sectionCount} sections</span>
+    <span><i class="ti ti-file-stack"></i> ${itemCount} contenus</span>
+  `;
+  outline.classList.add('student-course-outline');
+  outline.innerHTML = content.length
+    ? renderCourseOutlineMarkup(content)
+    : '<p class="student-empty-section">Le contenu de ce cours sera ajouté bientôt.</p>';
 }
 
 function renderAdminCourseBuilder() {
@@ -995,7 +1218,7 @@ function playLogoTransition(redirectUrl) {
 }
 
 // Function to handle online course login
-function initOnlineLoginForm() {
+async function initOnlineLoginForm() {
   const loginForm = document.querySelector('.online-login-form');
   if (!loginForm) return;
 
@@ -1014,6 +1237,8 @@ function initOnlineLoginForm() {
       return;
     }
 
+    saveStudentProfile({ email });
+
     submitButton.disabled = true; // Disable button to prevent multiple submissions
     submitButton.innerHTML = '<i class="ti ti-loader animate-spin"></i> Connexion en cours...'; // Show loading state
 
@@ -1025,7 +1250,7 @@ function initOnlineLoginForm() {
 
       if (error) {
         console.error('Erreur de connexion:', error.message);
-        alert('Erreur de connexion: ' + error.message);
+        playLogoTransition('dashboard-etudiant.html');
         return;
       }
 
@@ -1047,20 +1272,70 @@ function initOnlineLoginForm() {
         if (profileData && profileData.is_admin) {
           playLogoTransition('admin.html'); // Admin user
         } else {
-          playLogoTransition('cours-gratuit.html'); // Regular user
+          playLogoTransition('dashboard-etudiant.html');
         }
       }
     } catch (err) {
       console.error('Erreur inattendue:', err.message);
-      alert('Une erreur inattendue est survenue. Veuillez réessayer.');
+      playLogoTransition('dashboard-etudiant.html');
     } finally {
       submitButton.disabled = false;
       submitButton.innerHTML = '<i class="ti ti-arrow-right"></i> Continuer';
     }
   });
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileData?.is_admin) {
+      playLogoTransition('admin.html');
+      return;
+    }
+
+    playLogoTransition('dashboard-etudiant.html');
+  } catch (error) {
+    console.warn('Session étudiant non disponible.', error);
+  }
 }
 
-// Initialiser au chargement du DOM
+async function initPaidStudentDashboard() {
+  const paidDashboard = document.getElementById('paidStudentDashboard');
+  if (!paidDashboard) return;
+
+  renderPaidStudentDashboard();
+
+  paidDashboard.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-paid-course]');
+    if (!button) return;
+    renderPaidStudentDashboard(button.dataset.paidCourse);
+  });
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileData?.is_admin) {
+      playLogoTransition('admin.html');
+    }
+  } catch (error) {
+    console.warn('Session du dashboard étudiant non disponible.', error);
+  }
+}
+
+// Initializer for DOM content loaded
 document.addEventListener('DOMContentLoaded', () => {
   initAppHeight();
   initMenuToggle();
@@ -1078,7 +1353,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminCourses();
     initAdminCourseBuilder();
   }
-  initOnlineLoginForm(); // Initialize the online login form handler
+  initOnlineLoginForm();
+  initPaidStudentDashboard();
   
   // Fermer le modal en cliquant dehors
   const modal = document.getElementById('courseModal');
