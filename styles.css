@@ -119,6 +119,12 @@
       cursor: pointer; text-decoration: none; transition: all 0.15s;
     }
     .btn-secondary:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+    .btn-link {
+      background: none; border: none; color: var(--urb-gold);
+      font-weight: 700; cursor: pointer; text-decoration: underline;
+      padding: 0; font-family: inherit; font-size: inherit;
+    }
+    .btn-link:hover { color: var(--urb-gold-dark); }
     .hero-stats {
       display: flex; gap: 2.5rem; margin-top: 3rem;
       padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.15);
@@ -694,12 +700,526 @@
       background: #eef5fc;
       padding: 4.5rem 2rem;
     }
+    .free-ai-signup-page {
+      background: linear-gradient(180deg, #f0f6fa 0%, #e6effa 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 5rem 2rem;
+    }
+    .glow-bg-1, .glow-bg-2 {
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.25;
+      animation: pulse-glow 10s ease-in-out infinite alternate;
+    }
+    .glow-bg-1 {
+      background: rgba(24, 95, 165, 0.2);
+      top: -120px;
+      right: -120px;
+    }
+    .glow-bg-2 {
+      background: rgba(239, 159, 39, 0.15);
+      bottom: -150px;
+      left: -150px;
+      animation-delay: -5s;
+    }
+    @keyframes pulse-glow {
+      0% { transform: scale(1) translate(0, 0); opacity: 0.2; }
+      100% { transform: scale(1.15) translate(20px, -20px); opacity: 0.35; }
+    }
     .ai-quiz-screen,
     .ai-course-welcome,
     .ai-course-dashboard {
       max-width: 1080px;
       margin: 0 auto;
+      position: relative;
+      z-index: 2;
     }
+    
+    /* Grid layout for free AI Auth screen */
+    .free-ai-auth {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 4.5rem;
+      align-items: center;
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+    }
+    .free-ai-intro {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .free-ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 159, 39, 0.08);
+      color: var(--urb-gold-dark, #BA7517);
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(239, 159, 39, 0.2);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(186, 117, 23, 0.03);
+    }
+    .free-ai-badge i {
+      font-size: 14px;
+    }
+    .free-ai-intro h1 {
+      color: var(--urb-blue-dark);
+      font-size: 42px;
+      line-height: 1.15;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.02em;
+      text-align: left;
+    }
+    .free-ai-intro p {
+      color: #4a5568;
+      font-size: 16.5px;
+      line-height: 1.65;
+      margin-bottom: 2.25rem;
+      max-width: 580px;
+      text-align: left;
+    }
+    .free-ai-points {
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+    .free-ai-points span {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--urb-blue-dark);
+    }
+    .free-ai-points i {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(29, 158, 117, 0.1);
+      color: var(--urb-teal, #1D9E75);
+      font-size: 18px;
+      border: 1px solid rgba(29, 158, 117, 0.2);
+      box-shadow: 0 2px 6px rgba(29, 158, 117, 0.03);
+    }
+    
+    /* Right Side Card Signup Form */
+    .free-ai-card {
+      background: #ffffff;
+      border: 1px solid #eef2f6;
+      border-radius: 20px;
+      padding: 2.75rem 2.5rem;
+      box-shadow: 0 20px 40px rgba(4, 44, 83, 0.04), 0 1px 3px rgba(4, 44, 83, 0.02);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+    .free-ai-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 30px 60px rgba(4, 44, 83, 0.06), 0 1px 3px rgba(4, 44, 83, 0.02);
+    }
+    
+    .free-ai-card-head {
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+    .free-ai-card-head .section-eyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--urb-gold-dark, #BA7517);
+      margin-bottom: 0.35rem;
+    }
+    .free-ai-card-head h2 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--urb-blue-dark, #042C53);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .free-ai-card-head p {
+      font-size: 13.5px;
+      color: #64748b;
+      line-height: 1.5;
+      margin: 0;
+    }
+    
+    .free-ai-form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.35rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    .free-ai-card-body .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .free-ai-card-body label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--urb-blue-dark, #042C53);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .free-ai-card-body label i {
+      color: var(--urb-blue, #185FA5);
+      font-size: 15px;
+    }
+    .free-ai-card-body input {
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1.5px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 14.5px;
+      font-weight: 500;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .free-ai-card-body input::placeholder {
+      color: #94a3b8;
+    }
+    .free-ai-card-body input:focus {
+      outline: none;
+      border-color: var(--urb-blue, #185FA5);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(24, 95, 165, 0.08);
+    }
+    
+    .free-ai-note {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(29, 158, 117, 0.05);
+      border: 1px dashed rgba(29, 158, 117, 0.2);
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: var(--urb-teal, #1D9E75);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    .free-ai-note i {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .free-ai-submit {
+      width: 100%;
+      height: 50px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--urb-gold, #EF9F27) 0%, var(--urb-gold-dark, #BA7517) 100%);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(186, 117, 23, 0.15);
+      transition: all 0.2s ease;
+    }
+    .free-ai-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(186, 117, 23, 0.3);
+    }
+    .free-ai-submit:active {
+      transform: translateY(0);
+    }
+    .free-ai-submit i {
+      font-size: 16px;
+      transition: transform 0.2s ease;
+    }
+    .free-ai-submit:hover i {
+      transform: translateX(3px);
+    }
+    
+    .free-ai-switch {
+      text-align: center;
+      font-size: 13.5px;
+      color: #64748b;
+      margin-top: 1.35rem;
+      margin-bottom: 0;
+    }
+    .free-ai-switch button {
+      background: none;
+      border: none;
+      color: var(--urb-blue, #185FA5);
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0 2px;
+      font-size: 13.5px;
+      transition: color 0.2s ease;
+    }
+    .free-ai-switch button:hover {
+      color: var(--urb-blue-dark, #042C53);
+    }
+    
+    /* Login screen styling centering */
+    .free-ai-login {
+      max-width: 480px;
+      margin: 2rem auto;
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Quiz adjustments */
+    .free-ai-quiz-step {
+      display: none;
+    }
+    .free-ai-quiz-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+    .free-ai-quiz-list .quiz-question {
+      border: 1px solid #edf2f7;
+      border-radius: 12px;
+      padding: 1.25rem;
+      background: #fbfdff;
+      transition: all 0.25s ease;
+    }
+    .free-ai-quiz-list .quiz-question:focus-within {
+      border-color: rgba(24, 95, 165, 0.25);
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(24, 95, 165, 0.02);
+    }
+    .free-ai-quiz-list .quiz-question h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--urb-blue-dark, #042C53);
+      margin-bottom: 0.85rem;
+      line-height: 1.4;
+    }
+    .free-ai-quiz-list .quiz-question label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      color: #4a5568;
+      cursor: pointer;
+      border: 1px solid #edf2f7;
+      background: #ffffff;
+      transition: all 0.2s ease;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.005);
+    }
+    .free-ai-quiz-list .quiz-question label:last-child {
+      margin-bottom: 0;
+    }
+    .free-ai-quiz-list .quiz-question label:hover {
+      background: #f7fafc;
+      border-color: #e2e8f0;
+      color: var(--urb-blue-dark, #042C53);
+    }
+    .free-ai-quiz-list .quiz-question input[type="radio"] {
+      accent-color: var(--urb-blue, #185FA5);
+      margin-top: 3px;
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+    }
+    .free-ai-quiz-list .quiz-question label:has(input[type="radio"]:checked) {
+      background: rgba(24, 95, 165, 0.04);
+      border-color: rgba(24, 95, 165, 0.3);
+      color: var(--urb-blue-dark, #042C53);
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(24, 95, 165, 0.02);
+    }
+    
+    /* Welcome Screen Redesign */
+    .ai-course-welcome {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .course-welcome-card {
+      background: #ffffff;
+      border: 1px solid rgba(219, 228, 238, 0.6);
+      border-radius: 20px;
+      padding: 3.5rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(4, 44, 83, 0.04);
+    }
+    .course-welcome-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      background: rgba(239, 159, 39, 0.08);
+      color: var(--urb-gold, #EF9F27);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 38px;
+      border: 1px solid rgba(239, 159, 39, 0.20);
+      animation: float-icon 3s ease-in-out infinite;
+    }
+    @keyframes float-icon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .course-welcome-card h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--urb-blue-dark, #042C53);
+      margin-bottom: 1.5rem;
+      line-height: 1.25;
+    }
+    .quiz-result-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: left;
+      margin: 1.5rem auto 2rem;
+      max-width: 580px;
+    }
+    .quiz-result-box span {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    .quiz-result-box strong {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--urb-blue-dark, #042C53);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .quiz-result-box p {
+      font-size: 13.5px;
+      color: #475569;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Responsive adjustments for mobile screens */
+    @media (max-width: 991px) {
+      .free-ai-auth {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        margin-top: 0;
+      }
+    }
+    @media (max-width: 768px) {
+      .free-ai-signup-page {
+        padding: 3.5rem 1.25rem;
+      }
+      .free-ai-intro h1 {
+        font-size: 34px;
+        margin-bottom: 1rem;
+      }
+      .free-ai-intro p {
+        font-size: 15px;
+        margin-bottom: 1.75rem;
+      }
+      .free-ai-card {
+        padding: 2.25rem 1.75rem;
+        border-radius: 16px;
+      }
+      .free-ai-card-head h2 {
+        font-size: 22px;
+      }
+    }
+    @media (max-width: 480px) {
+      .free-ai-signup-page {
+        padding: 2.5rem 1rem;
+      }
+      .free-ai-intro h1 {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+      .free-ai-intro p {
+        font-size: 14.5px;
+        line-height: 1.55;
+        margin-bottom: 1.5rem;
+      }
+      .free-ai-points {
+        gap: 0.95rem;
+      }
+      .free-ai-points span {
+        font-size: 14px;
+        gap: 10px;
+      }
+      .free-ai-points i {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+      }
+      .free-ai-card {
+        padding: 1.75rem 1.25rem;
+        border-radius: 14px;
+      }
+      .free-ai-card-head {
+        margin-bottom: 1.5rem;
+      }
+      .free-ai-card-head h2 {
+        font-size: 20px;
+      }
+      .free-ai-form-grid {
+        gap: 1.15rem;
+        margin-bottom: 1.25rem;
+      }
+      .free-ai-card-body input {
+        height: 44px;
+        font-size: 14px;
+        border-radius: 10px;
+      }
+      .free-ai-submit {
+        height: 46px;
+        font-size: 14.5px;
+        border-radius: 10px;
+      }
+      .course-welcome-card {
+        padding: 2.5rem 1.25rem;
+        border-radius: 16px;
+      }
+      .course-welcome-card h1 {
+        font-size: 24px;
+      }
+      .quiz-result-box {
+        padding: 1.15rem;
+        margin: 1.25rem auto 1.5rem;
+      }
+      .quiz-result-box strong {
+        font-size: 17px;
+      }
+      .quiz-result-box p {
+        font-size: 13px;
+      }
+    }
+
     .ai-course-hero {
       max-width: 760px;
       margin-bottom: 2rem;
@@ -1499,6 +2019,419 @@
       color: #64748b;
       font-size: 14px;
       padding-bottom: 0.5rem;
+    }
+
+    /* Student Dashboard Specific Styles */
+    .student-profile-card {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+    }
+    .student-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--urb-blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .student-profile-card h2 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+      margin-bottom: 0.25rem;
+    }
+    .student-profile-card p {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    .paid-sidebar-actions {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .paid-sidebar-btn {
+      width: 100%;
+      min-height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: #fbfdff;
+      color: var(--urb-blue-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 15px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .paid-sidebar-btn:hover,
+    .paid-sidebar-btn.active {
+      background: var(--urb-blue-light);
+      color: var(--urb-blue);
+    }
+    .paid-sidebar-btn i {
+      font-size: 20px;
+    }
+    .paid-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .paid-panel-head h2 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+    }
+    .paid-panel-head span {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 700;
+    }
+    .paid-courses-list {
+      display: grid;
+      gap: 8px;
+    }
+    .paid-course-item {
+      width: 100%;
+      min-height: 52px;
+      border: 1px solid #dbe4ee;
+      border-radius: 10px;
+      background: #fbfdff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 15px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--urb-blue-dark);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .paid-course-item:hover,
+    .paid-course-item.active {
+      border-color: var(--urb-blue);
+      background: var(--urb-blue-light);
+    }
+    .paid-course-item strong {
+      color: var(--urb-gold);
+      font-size: 13px;
+    }
+    .paid-dashboard-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 18px 50px rgba(4,44,83,0.08);
+    }
+    .paid-dashboard-hero h1 {
+      font-size: 32px;
+      color: var(--urb-blue-dark);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .paid-dashboard-hero p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .paid-dashboard-action {
+      min-width: 200px;
+      min-height: 50px;
+      border-radius: 8px;
+      background: var(--urb-gold);
+      color: var(--urb-blue-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .paid-dashboard-action:hover {
+      background: var(--urb-gold-dark);
+      color: #fff;
+    }
+    .paid-dashboard-grid {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .paid-course-sidebar {
+      position: sticky;
+      top: 88px; /* Adjust based on nav height */
+    }
+    .paid-course-workspace {
+      display: grid;
+      gap: 1.5rem;
+    }
+    .student-dashboard-view {
+      display: none; /* Hidden by default, activated by JS */
+    }
+    .student-dashboard-view.active {
+      display: block;
+    }
+    .paid-course-top {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .paid-course-top h2 {
+      font-size: 26px;
+      color: var(--urb-blue-dark);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .paid-course-top p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .paid-course-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f6e56;
+      background: #e8f8f1;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
+    }
+    .paid-course-status i {
+      font-size: 16px;
+    }
+    .paid-course-meta {
+      display: flex;
+      gap: 1.5rem;
+      flex-shrink: 0;
+    }
+    .paid-course-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .paid-course-meta i {
+      font-size: 18px;
+      color: var(--urb-blue);
+    }
+    .student-back-btn {
+      background: none;
+      border: none;
+      color: var(--urb-blue);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 1rem;
+    }
+    .student-back-btn:hover {
+      text-decoration: underline;
+    }
+    .student-course-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .student-course-tabs button {
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 8px;
+      border: 1px solid #dbe4ee;
+      background: #fbfdff;
+      color: var(--urb-blue-dark);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .student-course-tabs button:hover,
+    .student-course-tabs button.active {
+      background: var(--urb-blue-light);
+      border-color: var(--urb-blue);
+      color: var(--urb-blue);
+    }
+    .student-overview-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .student-course-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .student-course-card {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .student-course-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .student-course-card h3 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+      line-height: 1.3;
+    }
+    .student-course-card .course-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #e8f8f1;
+      color: #0f6e56;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .student-course-card p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .student-course-card .btn-primary {
+      width: fit-content;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 0.5rem;
+    }
+    .paid-empty-state {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+      grid-column: 1 / -1; /* Span full width */
+    }
+    .paid-empty-state i {
+      font-size: 48px;
+      color: var(--urb-blue);
+      margin-bottom: 1rem;
+    }
+    .paid-empty-state h3 {
+      font-size: 22px;
+      color: var(--urb-blue-dark);
+      margin-bottom: 0.75rem;
+    }
+    .paid-empty-state p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .student-activity-panel {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+    }
+    .activity-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e4ebf3;
+      font-size: 14px;
+      color: #334155;
+    }
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+    .activity-item small {
+      font-size: 12px;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .student-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .student-profile-form {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(4,44,83,0.04);
+    }
+    .student-profile-form h3 {
+      font-size: 18px;
+      color: var(--urb-blue-dark);
+      margin-bottom: 1.2rem;
+    }
+
+    /* Responsive adjustments for dashboard */
+    @media (max-width: 768px) {
+      .paid-dashboard-hero { flex-direction: column; align-items: flex-start; }
+      .paid-dashboard-action { width: 100%; }
+      .paid-dashboard-grid { grid-template-columns: 1fr; }
+      .paid-course-sidebar { position: static; }
+      .paid-course-top { flex-direction: column; align-items: flex-start; }
+      .paid-course-meta { width: 100%; justify-content: space-between; }
+      .student-overview-body { grid-template-columns: 1fr; }
+      .student-course-cards { grid-template-columns: 1fr; }
+      .student-profile-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .paid-dashboard-hero { padding: 1.5rem; }
+      .paid-dashboard-hero h1 { font-size: 26px; }
+      .paid-course-top { padding: 1.2rem; }
+      .paid-course-top h2 { font-size: 22px; }
+      .paid-course-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .paid-sidebar-btn, .paid-course-item { padding: 0 12px; font-size: 13px; }
+      .student-profile-card { padding: 1rem; }
+      .student-profile-card h2 { font-size: 16px; }
+      .student-profile-form { padding: 1.2rem; }
+      .student-profile-form h3 { font-size: 16px; }
     }
 
     /* FOOTER */
