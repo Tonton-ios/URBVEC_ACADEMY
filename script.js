@@ -918,6 +918,28 @@ function getCourseItemIcon(type) {
   return icons[type] || 'ti-file';
 }
 
+function parseDeadline(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isDeadlinePassed(value) {
+  const deadline = parseDeadline(value);
+  return deadline ? deadline.getTime() < Date.now() : false;
+}
+
+function formatDeadline(value) {
+  const deadline = parseDeadline(value);
+  if (!deadline) return '';
+  return deadline.toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 function moveArrayItem(items, index, direction) {
   const nextIndex = index + direction;
   if (nextIndex < 0 || nextIndex >= items.length) return items;
@@ -962,10 +984,11 @@ function renderStudentCourseOutline() {
         <h2>${escapeHtml(section.title)}</h2>
         <div class="student-resource-list">
           ${section.items.map(item => `
-            <a class="student-resource-row" href="${escapeHtml(item.url || '#')}" ${item.url ? 'target="_blank" rel="noopener"' : ''} ${item.fileName ? `download="${escapeHtml(item.fileName)}"` : ''}>
+            <a class="student-resource-row ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}" href="${isDeadlinePassed(item.deadline_at) ? 'javascript:void(0)' : escapeHtml(item.url || '#')}" ${item.url && !isDeadlinePassed(item.deadline_at) ? 'target="_blank" rel="noopener"' : ''} ${item.fileName && !isDeadlinePassed(item.deadline_at) ? `download="${escapeHtml(item.fileName)}"` : ''} ${isDeadlinePassed(item.deadline_at) ? 'aria-disabled="true" tabindex="-1"' : ''}>
               <i class="ti ${getCourseItemIcon(item.type)}"></i>
               <span>${escapeHtml(item.title)}</span>
               ${item.note && item.note !== 'Done' ? `<strong>${escapeHtml(item.note)}</strong>` : ''}
+              ${item.deadline_at ? `<em>${isDeadlinePassed(item.deadline_at) ? 'Deadline passée' : `Jusqu’au ${escapeHtml(formatDeadline(item.deadline_at))}`}</em>` : ''}
               ${sectionIndex === 0 && item.note === 'Done' ? '<em><i class="ti ti-check"></i> Done</em>' : ''}
             </a>
           `).join('') || '<p class="student-empty-section">Aucun contenu pour le moment.</p>'}
@@ -985,10 +1008,11 @@ function renderCourseOutlineMarkup(content) {
         <h2>${escapeHtml(section.title)}</h2>
         <div class="student-resource-list">
           ${section.items.map(item => `
-            <a class="student-resource-row" href="${escapeHtml(item.url || '#')}" ${item.url ? 'target="_blank" rel="noopener"' : ''} ${item.fileName ? `download="${escapeHtml(item.fileName)}"` : ''}>
+            <a class="student-resource-row ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}" href="${isDeadlinePassed(item.deadline_at) ? 'javascript:void(0)' : escapeHtml(item.url || '#')}" ${item.url && !isDeadlinePassed(item.deadline_at) ? 'target="_blank" rel="noopener"' : ''} ${item.fileName && !isDeadlinePassed(item.deadline_at) ? `download="${escapeHtml(item.fileName)}"` : ''} ${isDeadlinePassed(item.deadline_at) ? 'aria-disabled="true" tabindex="-1"' : ''}>
               <i class="ti ${getCourseItemIcon(item.type)}"></i>
               <span>${escapeHtml(item.title)}</span>
               ${item.note && item.note !== 'Done' ? `<strong>${escapeHtml(item.note)}</strong>` : ''}
+              ${item.deadline_at ? `<em>${isDeadlinePassed(item.deadline_at) ? 'Deadline passée' : `Jusqu’au ${escapeHtml(formatDeadline(item.deadline_at))}`}</em>` : ''}
               ${sectionIndex === 0 && item.note === 'Done' ? '<em><i class="ti ti-check"></i> Done</em>' : ''}
             </a>
           `).join('') || '<p class="student-empty-section">Aucun contenu pour le moment.</p>'}
@@ -1018,6 +1042,8 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   const courseDescription = document.getElementById('paidCourseDescription');
   const courseMeta = document.getElementById('paidCourseMeta');
   const outline = document.getElementById('paidCourseOutline');
+  const assignmentsPanel = document.getElementById('paidCourseAssignmentsPanel');
+  const quizPanel = document.getElementById('paidCourseQuizPanel');
   const recentActivity = document.getElementById('studentRecentActivity');
   const studentFirstName = document.getElementById('studentFirstName');
   const studentAvatar = document.getElementById('studentAvatar');
@@ -1026,7 +1052,7 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   const studentPhone = document.getElementById('studentPhone');
   const studentAssignedCourse = document.getElementById('studentAssignedCourse');
 
-  if (!dashboard || !courseList || !courseCount || !courseTitle || !courseDescription || !courseMeta || !outline) return;
+  if (!dashboard || !courseList || !courseCount || !courseTitle || !courseDescription || !courseMeta || !outline || !assignmentsPanel || !quizPanel) return;
 
   const profile = getStudentProfile();
   const cards = document.getElementById('studentPaidCourseCards');
@@ -1046,11 +1072,11 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   if (studentEmail) studentEmail.textContent = email;
   if (studentPhone) studentPhone.textContent = phone;
   const profileAssignedCourses = document.getElementById('profileAssignedCourses');
-  if (profileAssignedCourses) profileAssignedCourses.textContent = String(assignedCourseIds.length || (assignedCourses.length ? assignedCourses.length : 0));
   const purchasedCourses = getPurchasedCourses();
   const assignedCourses = assignedCourseIds
     .map(courseId => getCourseById(courseId))
     .filter(Boolean);
+  if (profileAssignedCourses) profileAssignedCourses.textContent = String(assignedCourseIds.length || assignedCourses.length || purchasedCourses.length || 0);
   const activeCourse = purchasedCourses.find(course => course.id === selectedCourseId)
     || assignedCourses.find(course => course.id === selectedCourseId)
     || purchasedCourses[0]
@@ -1081,6 +1107,7 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   const activeCourseId = activeCourse?.id || assignedCourseIds[0] || purchasedCourses[0]?.id || getActiveCourseId();
   if (activeCourseId) setActiveCourseId(activeCourseId);
   const content = getCourseContent(activeCourseId);
+  const allItems = content.flatMap(section => section.items.map(item => ({ ...item, sectionTitle: section.title })));
   const sectionCount = content.length || 0;
   const itemCount = content.reduce((total, section) => total + section.items.length, 0);
 
@@ -1105,6 +1132,37 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   outline.innerHTML = content.length
     ? renderCourseOutlineMarkup(content)
     : '<p class="student-empty-section">Le contenu de ce cours sera ajouté bientôt.</p>';
+
+  const assignments = allItems.filter(item => item.type === 'assignment' || item.type === 'devoir');
+  const quizzes = allItems.filter(item => item.type === 'quiz');
+
+  assignmentsPanel.innerHTML = assignments.length ? assignments.map(item => `
+    <article class="student-task-card ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}">
+      <h3>${escapeHtml(item.title)}</h3>
+      <p>${escapeHtml(item.note || item.sectionTitle || 'Devoir du cours')}</p>
+      <div class="student-task-meta">
+        <span><i class="ti ti-calendar-time"></i> ${item.deadline_at ? formatDeadline(item.deadline_at) : 'Sans deadline'}</span>
+      </div>
+      <label class="student-upload-box ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}">
+        <input type="file" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}>
+        <span><i class="ti ti-upload"></i> Déposer le devoir</span>
+      </label>
+      <textarea placeholder="Ajoutez un commentaire" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}></textarea>
+      <button type="button" class="btn-primary" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}>Soumettre le devoir</button>
+    </article>
+  `).join('') : '<p class="student-empty-section">Aucun devoir disponible pour le moment.</p>';
+
+  quizPanel.innerHTML = quizzes.length ? quizzes.map(item => `
+    <article class="student-task-card ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}">
+      <h3>${escapeHtml(item.title)}</h3>
+      <p>${escapeHtml(item.note || item.sectionTitle || 'Quiz du cours')}</p>
+      <div class="student-task-meta">
+        <span><i class="ti ti-bolt"></i> Points définis par l’admin</span>
+        <span><i class="ti ti-calendar-time"></i> ${item.deadline_at ? formatDeadline(item.deadline_at) : 'Sans deadline'}</span>
+      </div>
+      <button type="button" class="btn-primary" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}>Commencer le quiz</button>
+    </article>
+  `).join('') : '<p class="student-empty-section">Aucun quiz disponible pour le moment.</p>';
 
   if (cards) {
     cards.innerHTML = coursesToRender.length
@@ -1221,7 +1279,7 @@ function renderAdminCourseList() {
         <strong>${escapeHtml(course.title)}</strong>
         <span>${escapeHtml(course.status)} · Inscription ${formatHtg(getCourseRegistrationFee(course))} · Participation ${formatHtg(getCourseParticipationFee(course))} · ${escapeHtml(course.slug)}</span>
       </div>
-      <button type="button" data-select-course="${course.id}"><i class="ti ti-check"></i> Utiliser</button>
+      <button type="button" data-select-course="${course.id}" ${isCourseAvailable(course) ? '' : 'disabled'}><i class="ti ti-check"></i> ${isCourseAvailable(course) ? 'Utiliser' : 'Bloqué'}</button>
     </div>
   `).join('');
 }
@@ -1231,7 +1289,7 @@ function populateAdminStudentCourseSelect() {
   if (!select) return;
   const courses = getCourses();
   select.innerHTML = courses.map(course => `
-    <option value="${course.id}">${escapeHtml(course.title)}</option>
+    <option value="${course.id}" ${isCourseAvailable(course) ? '' : 'disabled'}>${escapeHtml(course.title)}${isCourseAvailable(course) ? '' : ' (indisponible)'}</option>
   `).join('');
 }
 
@@ -1820,6 +1878,7 @@ async function initPaidStudentDashboard() {
   const mobileMenu = document.getElementById('studentMobileMenu');
   const menuClose = document.getElementById('studentMenuClose');
   const viewButtons = paidDashboard.querySelectorAll('[data-student-view]');
+  const courseTabButtons = paidDashboard.querySelectorAll('[data-course-tab]');
   const overviewView = document.getElementById('studentOverviewView');
   const courseView = document.getElementById('studentCourseView');
   const profileView = document.getElementById('studentProfileView');
@@ -1831,6 +1890,13 @@ async function initPaidStudentDashboard() {
     if (courseView) courseView.style.display = view === 'courses' ? 'block' : 'none';
     if (profileView) profileView.style.display = view === 'profile' ? 'block' : 'none';
     viewButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.studentView === view));
+  };
+
+  const showCoursePanel = (panel) => {
+    paidDashboard.querySelectorAll('[data-course-panel]').forEach(node => {
+      node.classList.toggle('active', node.dataset.coursePanel === panel);
+    });
+    courseTabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.courseTab === panel));
   };
 
   const toggleMenu = (open) => {
@@ -1861,6 +1927,10 @@ async function initPaidStudentDashboard() {
     });
   });
 
+  courseTabButtons.forEach(button => {
+    button.addEventListener('click', () => showCoursePanel(button.dataset.courseTab));
+  });
+
   if (backToOverview) {
     backToOverview.addEventListener('click', () => showView('overview'));
   }
@@ -1880,6 +1950,7 @@ async function initPaidStudentDashboard() {
   await syncStudentProfileFromSession();
   renderPaidStudentDashboard();
   showView('overview');
+  showCoursePanel('content');
 
   try {
     const { data: { session } } = await supabase.auth.getSession();

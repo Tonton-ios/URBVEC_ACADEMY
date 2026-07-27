@@ -23,6 +23,47 @@ begin
 end;
 $$ language plpgsql security definer;
 
+create or replace function public.can_access_course(p_course_id uuid)
+returns boolean as $$
+begin
+  return public.is_admin() or exists (
+    select 1
+    from public.student_courses
+    where student_courses.student_id = auth.uid()
+      and student_courses.course_id = p_course_id
+      and student_courses.status = 'Actif'
+  );
+end;
+$$ language plpgsql security definer;
+
+create or replace function public.can_access_assignment(p_assignment_id uuid)
+returns boolean as $$
+begin
+  return public.is_admin() or exists (
+    select 1
+    from public.assignments
+    join public.student_courses on student_courses.course_id = assignments.course_id
+    where assignments.id = p_assignment_id
+      and student_courses.student_id = auth.uid()
+      and student_courses.status = 'Actif'
+  );
+end;
+$$ language plpgsql security definer;
+
+create or replace function public.can_access_quiz(p_quiz_id uuid)
+returns boolean as $$
+begin
+  return public.is_admin() or exists (
+    select 1
+    from public.course_quizzes
+    join public.student_courses on student_courses.course_id = course_quizzes.course_id
+    where course_quizzes.id = p_quiz_id
+      and student_courses.student_id = auth.uid()
+      and student_courses.status = 'Actif'
+  );
+end;
+$$ language plpgsql security definer;
+
 create table if not exists public.courses (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -253,6 +294,12 @@ create policy "Les admins peuvent voir tous les profils"
 on public.profiles for select
 using (public.is_admin());
 
+drop policy if exists "Users can update their own profile" on public.profiles;
+create policy "Users can update their own profile"
+on public.profiles for update
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
 drop policy if exists "Les étudiants peuvent voir leurs cours attribués" on public.student_courses;
 create policy "Les étudiants peuvent voir leurs cours attribués"
 on public.student_courses for select
@@ -261,38 +308,45 @@ using (auth.uid() = student_id or public.is_admin());
 drop policy if exists "Les admins peuvent gérer les cours attribués" on public.student_courses;
 create policy "Les admins peuvent gérer les cours attribués"
 on public.student_courses for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 -- Sécurisation des tables : seul un admin peut modifier les données
 drop policy if exists "Prototype admin can manage courses" on public.courses;
 create policy "Prototype admin can manage courses"
 on public.courses for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Prototype admin can manage sections" on public.course_sections;
 create policy "Prototype admin can manage sections"
 on public.course_sections for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Prototype admin can manage items" on public.course_items;
 create policy "Prototype admin can manage items"
 on public.course_items for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Admins can manage quizzes" on public.course_quizzes;
 create policy "Admins can manage quizzes"
 on public.course_quizzes for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Admins can manage quiz questions" on public.quiz_questions;
 create policy "Admins can manage quiz questions"
 on public.quiz_questions for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Admins can manage quiz options" on public.quiz_options;
 create policy "Admins can manage quiz options"
 on public.quiz_options for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Students can see their quiz attempts" on public.quiz_attempts;
 create policy "Students can see their quiz attempts"
@@ -302,7 +356,16 @@ using (auth.uid() = student_id or public.is_admin());
 drop policy if exists "Students can submit quiz attempts" on public.quiz_attempts;
 create policy "Students can submit quiz attempts"
 on public.quiz_attempts for insert
-with check (auth.uid() = student_id or public.is_admin());
+with check (
+  (auth.uid() = student_id or public.is_admin())
+  and public.can_access_quiz(quiz_id)
+  and exists (
+    select 1 from public.course_quizzes
+    where course_quizzes.id = quiz_id
+      and (course_quizzes.opens_at is null or course_quizzes.opens_at <= now())
+      and (course_quizzes.closes_at is null or course_quizzes.closes_at >= now())
+  )
+);
 
 drop policy if exists "Students can see quiz answers" on public.quiz_answers;
 create policy "Students can see quiz answers"
@@ -313,26 +376,42 @@ using (public.is_admin() or exists (
   and quiz_attempts.student_id = auth.uid()
 ));
 
+drop policy if exists "Students can submit quiz answers" on public.quiz_answers;
+create policy "Students can submit quiz answers"
+on public.quiz_answers for insert
+with check (
+  public.is_admin() or exists (
+    select 1 from public.quiz_attempts
+    where quiz_attempts.id = quiz_answers.attempt_id
+      and quiz_attempts.student_id = auth.uid()
+  )
+);
+
 drop policy if exists "Students can submit assignments" on public.assignments;
 create policy "Students can submit assignments"
 on public.assignments for select
 using (
-  public.is_admin() or exists (
-    select 1 from public.student_courses
-    where student_courses.student_id = auth.uid()
-    and student_courses.course_id = assignments.course_id
-  )
+  public.is_admin() or public.can_access_course(assignments.course_id)
 );
 
 drop policy if exists "Admins can manage assignments" on public.assignments;
 create policy "Admins can manage assignments"
 on public.assignments for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Students can submit assignment submissions" on public.assignment_submissions;
 create policy "Students can submit assignment submissions"
 on public.assignment_submissions for insert
-with check (auth.uid() = student_id or public.is_admin());
+with check (
+  (auth.uid() = student_id or public.is_admin())
+  and public.can_access_assignment(assignment_id)
+  and exists (
+    select 1 from public.assignments
+    where assignments.id = assignment_id
+      and (assignments.deadline_at is null or assignments.deadline_at >= now())
+  )
+);
 
 drop policy if exists "Students can read their assignment submissions" on public.assignment_submissions;
 create policy "Students can read their assignment submissions"
@@ -342,23 +421,21 @@ using (auth.uid() = student_id or public.is_admin());
 drop policy if exists "Admins can manage assignment submissions" on public.assignment_submissions;
 create policy "Admins can manage assignment submissions"
 on public.assignment_submissions for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Students can read notifications for their courses" on public.course_notifications;
 create policy "Students can read notifications for their courses"
 on public.course_notifications for select
 using (
-  public.is_admin() or exists (
-    select 1 from public.student_courses
-    where student_courses.student_id = auth.uid()
-    and student_courses.course_id = course_notifications.course_id
-  )
+  public.is_admin() or public.can_access_course(course_notifications.course_id)
 );
 
 drop policy if exists "Admins can manage notifications" on public.course_notifications;
 create policy "Admins can manage notifications"
 on public.course_notifications for all
-using (public.is_admin());
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Public can submit registrations" on public.registrations;
 create policy "Public can submit registrations"
@@ -382,6 +459,170 @@ with check (
   bucket_id = 'course-files' AND
   public.is_admin()
 );
+
+create or replace function public.admin_assign_courses(
+  p_student_id uuid,
+  p_course_ids uuid[]
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  p_course_id uuid;
+begin
+  if not public.is_admin() then
+    raise exception 'Not allowed';
+  end if;
+
+  delete from public.student_courses
+  where student_courses.student_id = p_student_id;
+
+  foreach p_course_id in array p_course_ids loop
+    insert into public.student_courses (student_id, course_id, granted_by, status)
+    values (p_student_id, p_course_id, auth.uid(), 'Actif')
+    on conflict (student_id, course_id)
+    do update set
+      granted_by = excluded.granted_by,
+      status = excluded.status,
+      updated_at = now();
+  end loop;
+end;
+$$;
+
+create or replace function public.submit_quiz_attempt(
+  p_quiz_id uuid,
+  p_answers jsonb
+)
+returns table(attempt_id uuid, score numeric, total_points numeric)
+language plpgsql
+security definer
+as $$
+declare
+  v_attempt_id uuid;
+  v_total_points numeric := 0;
+  v_score numeric := 0;
+  v_question_count integer := 0;
+begin
+  if not public.can_access_quiz(p_quiz_id) then
+    raise exception 'Not allowed';
+  end if;
+
+  if exists (
+    select 1 from public.course_quizzes
+    where id = p_quiz_id
+      and closes_at is not null
+      and closes_at < now()
+  ) then
+    raise exception 'Deadline passed';
+  end if;
+
+  insert into public.quiz_attempts (quiz_id, student_id, score, total_points, submitted_at)
+  values (p_quiz_id, auth.uid(), 0, 0, now())
+  returning id into v_attempt_id;
+
+  with q as (
+    select qq.id, qq.points
+    from public.quiz_questions qq
+    where qq.quiz_id = p_quiz_id
+  )
+  select coalesce(sum(points), 0), count(*) into v_total_points, v_question_count from q;
+
+  with attempt_questions as (
+    select qq.id as question_id, qq.points, coalesce((p_answers ->> qq.id::text), '') as selected_option_id
+    from public.quiz_questions qq
+    where qq.quiz_id = p_quiz_id
+  ),
+  scored as (
+    select
+      aq.question_id,
+      aq.points,
+      aq.selected_option_id,
+      exists (
+        select 1
+        from public.quiz_options qo
+        where qo.id::uuid = nullif(aq.selected_option_id, '')::uuid
+          and qo.question_id = aq.question_id
+          and qo.is_correct = true
+      ) as is_correct
+    from attempt_questions aq
+  )
+  select coalesce(sum(case when is_correct then points else 0 end), 0)
+  into v_score
+  from scored;
+
+  update public.quiz_attempts
+  set total_points = v_total_points,
+      score = v_score,
+      graded_at = now()
+  where id = v_attempt_id;
+
+  insert into public.quiz_answers (attempt_id, question_id, selected_option_id, is_correct)
+  select
+    v_attempt_id,
+    qq.id,
+    nullif(p_answers ->> qq.id::text, '')::uuid,
+    exists (
+      select 1
+      from public.quiz_options qo
+      where qo.id = nullif(p_answers ->> qq.id::text, '')::uuid
+        and qo.question_id = qq.id
+        and qo.is_correct = true
+    )
+  from public.quiz_questions qq
+  where qq.quiz_id = p_quiz_id;
+
+  return query select v_attempt_id, v_score, v_total_points;
+end;
+$$;
+
+create or replace function public.submit_assignment(
+  p_assignment_id uuid,
+  p_submitted_text text,
+  p_submitted_link text,
+  p_file_name text,
+  p_file_url text
+)
+returns uuid
+language plpgsql
+security definer
+as $$
+declare
+  v_id uuid;
+begin
+  if not public.can_access_assignment(p_assignment_id) then
+    raise exception 'Not allowed';
+  end if;
+
+  if exists (
+    select 1 from public.assignments
+    where id = p_assignment_id
+      and deadline_at is not null
+      and deadline_at < now()
+  ) then
+    raise exception 'Deadline passed';
+  end if;
+
+  insert into public.assignment_submissions (
+    assignment_id, student_id, submitted_text, submitted_link, file_name, file_url, status
+  )
+  values (
+    p_assignment_id, auth.uid(), coalesce(p_submitted_text, ''), coalesce(p_submitted_link, ''),
+    coalesce(p_file_name, ''), coalesce(p_file_url, ''), 'Soumis'
+  )
+  on conflict (assignment_id, student_id)
+  do update set
+    submitted_text = excluded.submitted_text,
+    submitted_link = excluded.submitted_link,
+    file_name = excluded.file_name,
+    file_url = excluded.file_url,
+    status = 'Soumis',
+    updated_at = now()
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
 
 -- Fonction pour créer un profil automatiquement à l'inscription
 create or replace function public.handle_new_user()
