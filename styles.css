@@ -1,7 +1,11 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; min-height: 100%; }
+    html, body { width: 100%; min-height: 100%; max-width: 100%; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; overflow-x: hidden; }
+    img, video, iframe, canvas, svg { max-width: 100%; height: auto; }
+    a, button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+    *, *::before, *::after { min-width: 0; box-sizing: border-box; }
+    body, .section, .registration-section, .courses-container, .courses-page-header, .cta-band { overflow-x: clip; }
     textarea { font-family: inherit; resize: vertical; }
     html.welcome-lock,
     body.welcome-lock {
@@ -652,6 +656,32 @@
       color: #fff;
       transform: translateY(-1px);
     }
+    .registration-notice {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(18px);
+      z-index: 9999;
+      max-width: min(92vw, 420px);
+      width: fit-content;
+      padding: 14px 16px;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 18px 40px rgba(4,44,83,0.2);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .registration-notice.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .registration-notice.success { background: linear-gradient(135deg, var(--urb-teal), #0f6e56); }
+    .registration-notice.info { background: linear-gradient(135deg, var(--urb-blue), var(--urb-blue-dark)); }
+    .registration-notice.error { background: linear-gradient(135deg, #c53030, #8f1d1d); }
 
     /* ONLINE COURSES LOGIN */
     .online-login-section {
@@ -2217,6 +2247,7 @@
     }
     
     @media (max-width: 480px) {
+      html, body { width: 100%; overflow-x: hidden; }
       .nav { height: auto; flex-wrap: wrap; padding: 0.75rem 1rem; }
       .nav-logo { width: 100%; }
       .menu-toggle { width: auto; }
@@ -2266,9 +2297,12 @@
       .price-lines .price-total strong,
       .payment-number-list strong { font-size: 18px; }
       .payment-methods { grid-template-columns: 1fr; }
+      .payment-help a { word-break: break-word; }
       .participation-note,
       .submit-notice { align-items: flex-start; }
       .moncash-alert { align-items: flex-start; }
+      .registration-notice { left: 12px; right: 12px; bottom: 12px; transform: translateY(18px); max-width: none; width: auto; }
+      .registration-notice.show { transform: translateY(0); }
       .online-login-section { padding: 2rem 1rem; align-items: flex-start; }
       .online-login-form { padding: 1rem; border-radius: 10px; }
       .online-login-intro h1 { font-size: 24px; }

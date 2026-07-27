@@ -220,6 +220,27 @@ function getPaymentInfoWhatsappUrl() {
   return `https://wa.me/${trainerWhatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
+function showRegistrationNotice(message, type = 'success') {
+  let notice = document.getElementById('registrationNotice');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'registrationNotice';
+    notice.className = 'registration-notice';
+    notice.setAttribute('role', 'status');
+    notice.setAttribute('aria-live', 'polite');
+    document.body.appendChild(notice);
+  }
+
+  notice.classList.remove('success', 'info', 'error', 'show');
+  notice.classList.add(type, 'show');
+  notice.textContent = message;
+
+  window.clearTimeout(window.__registrationNoticeTimer);
+  window.__registrationNoticeTimer = window.setTimeout(() => {
+    notice.classList.remove('show');
+  }, 4200);
+}
+
 function initRegistrationForm() {
   const registrationForm = document.getElementById('registrationForm');
   const courseSelect = document.getElementById('courseSelect');
@@ -412,18 +433,14 @@ function initRegistrationForm() {
       status: 'En attente de vérification'
     };
 
-    const whatsappWindow = window.open('', '_blank');
     const savePromise = saveRegistrationToDatabase(registration);
     savePurchasedCourseId(selectedCourseId);
     const whatsappUrl = getTrainerWhatsappUrl(registration);
     await savePromise;
-    if (whatsappWindow) {
-      whatsappWindow.location.href = whatsappUrl;
-    } else {
+    showRegistrationNotice('Merci, patientez. Bienvenue à URBVEC Academy, votre inscription est en cours de traitement.', 'success');
+    setTimeout(() => {
       window.location.href = whatsappUrl;
-    }
-
-    alert("Inscription envoyée. Une fenêtre WhatsApp va s'ouvrir: envoyez le message et ajoutez le reçu/capture d'écran.");
+    }, 900);
 
     if (registrationSubmit) {
       registrationSubmit.disabled = false;
