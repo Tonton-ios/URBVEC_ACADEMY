@@ -620,6 +620,8 @@ const ACTIVE_COURSE_KEY = 'urbvec_active_course';
 const PURCHASED_COURSES_KEY = 'urbvec_purchased_courses';
 const STUDENT_PROFILE_KEY = 'urbvec_student_profile';
 const STUDENT_ACTIVITY_KEY = 'urbvec_student_activity';
+const STUDENT_ACCOUNTS_KEY = 'urbvec_student_accounts';
+const STUDENT_LIBRARY_KEY = 'urbvec_student_library';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
 
 const defaultCourses = [
@@ -777,6 +779,63 @@ function saveStudentProfile(profile) {
   const nextProfile = { ...getStudentProfile(), ...profile };
   localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(nextProfile));
   return nextProfile;
+}
+
+function getAssignedCourseIds(profile = getStudentProfile()) {
+  const raw = profile.assignedCourseIds || profile.assigned_course_ids;
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  const single = profile.assignedCourseId || profile.assigned_course_id;
+  return single ? [single] : [];
+}
+
+function saveStudentLibrary(payload) {
+  localStorage.setItem(STUDENT_LIBRARY_KEY, JSON.stringify(payload));
+}
+
+function getStudentLibrary() {
+  try {
+    const saved = localStorage.getItem(STUDENT_LIBRARY_KEY);
+    if (!saved) return {};
+    const parsed = JSON.parse(saved);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getStudentAccounts() {
+  try {
+    const saved = localStorage.getItem(STUDENT_ACCOUNTS_KEY);
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('Impossible de lire les comptes étudiants.', error);
+    return [];
+  }
+}
+
+function saveStudentAccount(account) {
+  const accounts = getStudentAccounts();
+  const sanitized = {
+    fullName: account.fullName || '',
+    email: account.email || '',
+    phone: account.phone || '',
+    password: account.password || '',
+    assignedCourseIds: Array.isArray(account.assignedCourseIds) ? account.assignedCourseIds.filter(Boolean) : (account.assignedCourseId ? [account.assignedCourseId] : []),
+    assignedCourseTitles: Array.isArray(account.assignedCourseTitles) ? account.assignedCourseTitles.filter(Boolean) : (account.assignedCourseTitle ? [account.assignedCourseTitle] : [])
+  };
+  const index = accounts.findIndex(item => item.email.toLowerCase() === sanitized.email.toLowerCase());
+  if (index >= 0) {
+    accounts[index] = { ...accounts[index], ...sanitized };
+  } else {
+    accounts.push(sanitized);
+  }
+  localStorage.setItem(STUDENT_ACCOUNTS_KEY, JSON.stringify(accounts));
+  return sanitized;
+}
+
+function findStudentAccount(email, password) {
+  return getStudentAccounts().find(account => account.email.toLowerCase() === email.toLowerCase() && account.password === password) || null;
 }
 
 function getStudentActivity() {
@@ -947,6 +1006,10 @@ function getPurchasedCourses() {
     .filter(course => course && getCourseTotalFee(course) > 0);
 }
 
+function getCourseById(courseId) {
+  return getCourses().find(course => course.id === courseId) || null;
+}
+
 function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   const dashboard = document.getElementById('paidStudentDashboard');
   const courseList = document.getElementById('paidCoursesList');
@@ -955,15 +1018,47 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   const courseDescription = document.getElementById('paidCourseDescription');
   const courseMeta = document.getElementById('paidCourseMeta');
   const outline = document.getElementById('paidCourseOutline');
+  const recentActivity = document.getElementById('studentRecentActivity');
+  const studentFirstName = document.getElementById('studentFirstName');
+  const studentAvatar = document.getElementById('studentAvatar');
+  const studentFullName = document.getElementById('studentFullName');
+  const studentEmail = document.getElementById('studentEmail');
+  const studentPhone = document.getElementById('studentPhone');
+  const studentAssignedCourse = document.getElementById('studentAssignedCourse');
 
   if (!dashboard || !courseList || !courseCount || !courseTitle || !courseDescription || !courseMeta || !outline) return;
 
+  const profile = getStudentProfile();
+  const cards = document.getElementById('studentPaidCourseCards');
+  const fullName = profile.fullName || profile.full_name || 'Étudiant URBVEC';
+  const firstName = fullName.split(' ').filter(Boolean)[0] || 'étudiant';
+  const email = profile.email || 'email@exemple.com';
+  const phone = profile.phone || 'Téléphone non ajouté';
+  const assignedCourseIds = getAssignedCourseIds(profile);
+  const assignedCourse = getCourseById(selectedCourseId) || getCourseById(assignedCourseIds[0]) || null;
+  const assignedCourseTitles = Array.isArray(profile.assignedCourseTitles || profile.assigned_course_titles)
+    ? (profile.assignedCourseTitles || profile.assigned_course_titles).filter(Boolean)
+    : [];
+
+  if (studentFirstName) studentFirstName.textContent = firstName;
+  if (studentAvatar) studentAvatar.textContent = getInitials(fullName);
+  if (studentFullName) studentFullName.textContent = fullName;
+  if (studentEmail) studentEmail.textContent = email;
+  if (studentPhone) studentPhone.textContent = phone;
+  if (studentAssignedCourse) studentAssignedCourse.textContent = `Cours attribué: ${assignedCourseTitles.join(', ') || assignedCourse?.title || 'En attente'}`;
+
   const purchasedCourses = getPurchasedCourses();
-  const activeCourse = purchasedCourses.find(course => course.id === selectedCourseId) || purchasedCourses[0];
+  const assignedCourses = assignedCourseIds
+    .map(courseId => getCourseById(courseId))
+    .filter(Boolean);
+  const activeCourse = purchasedCourses.find(course => course.id === selectedCourseId)
+    || assignedCourses.find(course => course.id === selectedCourseId)
+    || purchasedCourses[0]
+    || assignedCourses[0];
   courseCount.textContent = `${purchasedCourses.length} cours`;
 
-  if (!purchasedCourses.length) {
-    courseList.innerHTML = '<p class="student-empty-section">Aucun cours acheté pour le moment.</p>';
+  if (!assignedCourses.length && !purchasedCourses.length) {
+    courseList.innerHTML = '<p class="student-empty-section">Aucun cours attribué pour le moment.</p>';
     courseTitle.textContent = 'Aucun cours payant actif';
     courseDescription.textContent = 'Achetez une formation pour débloquer un dashboard étudiant complet.';
     courseMeta.innerHTML = '<span><i class="ti ti-book-2"></i> 0 sections</span><span><i class="ti ti-file-stack"></i> 0 contenus</span>';
@@ -978,20 +1073,25 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
     return;
   }
 
-  setActiveCourseId(activeCourse.id);
-  const content = getCourseContent(activeCourse.id);
+  const activeCourseId = activeCourse?.id || assignedCourseIds[0] || purchasedCourses[0]?.id || getActiveCourseId();
+  if (activeCourseId) setActiveCourseId(activeCourseId);
+  const content = getCourseContent(activeCourseId);
   const sectionCount = content.length || 0;
   const itemCount = content.reduce((total, section) => total + section.items.length, 0);
 
-  courseList.innerHTML = purchasedCourses.map(course => `
-    <button type="button" class="paid-course-item ${course.id === activeCourse.id ? 'active' : ''}" data-paid-course="${course.id}">
+  const coursesToRender = [...new Map([...assignedCourses, ...purchasedCourses].map(course => [course.id, course])).values()];
+  courseList.innerHTML = coursesToRender.map(course => `
+    <button type="button" class="paid-course-item ${course.id === activeCourseId ? 'active' : ''}" data-paid-course="${course.id}">
       <span>${escapeHtml(course.title)}</span>
       <strong>${formatHtg(getCourseTotalFee(course))}</strong>
     </button>
   `).join('');
 
-  courseTitle.textContent = activeCourse.title;
-  courseDescription.textContent = activeCourse.description || 'Votre formation payante avec contenus, documents et exercices.';
+  courseTitle.textContent = activeCourse?.title || 'Votre formation';
+  courseDescription.textContent = activeCourse?.description || 'Votre formation payante avec contenus, documents et exercices.';
+  if (dashboard) {
+    dashboard.dataset.assignedCourse = assignedCourse?.title || activeCourse?.title || '';
+  }
   courseMeta.innerHTML = `
     <span><i class="ti ti-book-2"></i> ${sectionCount} sections</span>
     <span><i class="ti ti-file-stack"></i> ${itemCount} contenus</span>
@@ -1000,6 +1100,58 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   outline.innerHTML = content.length
     ? renderCourseOutlineMarkup(content)
     : '<p class="student-empty-section">Le contenu de ce cours sera ajouté bientôt.</p>';
+
+  if (cards) {
+    cards.innerHTML = coursesToRender.length
+      ? coursesToRender.map(course => `
+        <article class="student-course-card">
+          <div class="student-course-card-head">
+            <h3>${escapeHtml(course.title)}</h3>
+            <span class="course-status">${escapeHtml(course.status || 'Publié')}</span>
+          </div>
+          <p>${escapeHtml(course.description || 'Cours attribué à votre compte.')}</p>
+          <button type="button" class="btn-primary" data-paid-course="${course.id}">Ouvrir le cours</button>
+        </article>
+      `).join('')
+      : '<div class="paid-empty-state"><i class="ti ti-lock-open"></i><h3>Aucun cours attribué</h3><p>Votre administrateur doit vous attribuer au moins un cours.</p></div>';
+  }
+
+  if (recentActivity) {
+    const activities = getStudentActivity();
+    recentActivity.innerHTML = activities.length
+      ? activities.map(activity => `
+        <div class="activity-item">
+          <span>${escapeHtml(activity.label || activity.action || 'Activité')}</span>
+          <small>${escapeHtml(activity.time || '')}</small>
+        </div>
+      `).join('')
+      : '<p class="student-empty-section">Aucune activité pour le moment.</p>';
+  }
+}
+
+async function syncStudentProfileFromSession() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.email) return;
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('full_name,email,phone,assigned_course_id,assigned_course_title')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileData) {
+      saveStudentProfile({
+        fullName: profileData.full_name || session.user.user_metadata?.full_name || '',
+        email: profileData.email || session.user.email,
+        phone: profileData.phone || '',
+        assignedCourseId: profileData.assigned_course_id || '',
+        assignedCourseTitle: profileData.assigned_course_title || ''
+      });
+    }
+  } catch (error) {
+    console.warn('Impossible de synchroniser le profil étudiant.', error);
+  }
 }
 
 function renderAdminCourseBuilder() {
@@ -1067,6 +1219,44 @@ function renderAdminCourseList() {
       <button type="button" data-select-course="${course.id}"><i class="ti ti-check"></i> Utiliser</button>
     </div>
   `).join('');
+}
+
+function populateAdminStudentCourseSelect() {
+  const select = document.getElementById('studentCourseAdmin');
+  if (!select) return;
+  const courses = getCourses();
+  select.innerHTML = courses.map(course => `
+    <option value="${course.id}">${escapeHtml(course.title)}</option>
+  `).join('');
+}
+
+function renderAdminStudentList() {
+  const tbody = document.getElementById('adminStudentsTableBody');
+  if (!tbody) return;
+
+  const accounts = getStudentAccounts();
+  if (!accounts.length) {
+    tbody.innerHTML = '<tr><td colspan="5">Aucun étudiant chargé pour le moment.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = accounts.map(account => {
+    const courseTitles = Array.isArray(account.assignedCourseTitles)
+      ? account.assignedCourseTitles
+      : account.assignedCourseTitle
+        ? [account.assignedCourseTitle]
+        : [];
+    const courseLabel = courseTitles.length ? courseTitles.join(', ') : 'Non attribué';
+    return `
+      <tr>
+        <td>${escapeHtml(account.fullName || '')}</td>
+        <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
+        <td>${escapeHtml(courseLabel)}</td>
+        <td>Actif</td>
+        <td><button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button></td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function fillAdminCourseForm(course) {
@@ -1328,6 +1518,61 @@ function initAdminCourseBuilder() {
   });
 }
 
+function initAdminStudentForm() {
+  const form = document.getElementById('adminStudentForm');
+  if (!form) return;
+
+  populateAdminStudentCourseSelect();
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const fullName = document.getElementById('studentFullNameAdmin')?.value.trim();
+    const email = document.getElementById('studentEmailAdmin')?.value.trim();
+    const phone = document.getElementById('studentPhoneAdmin')?.value.trim();
+    const password = document.getElementById('studentPasswordAdmin')?.value.trim();
+    const courseSelect = document.getElementById('studentCourseAdmin');
+    const selectedOptions = Array.from(courseSelect?.selectedOptions || []);
+    const courseIds = selectedOptions.map(option => option.value).filter(Boolean);
+    const courseTitles = selectedOptions.map(option => option.textContent).filter(Boolean);
+    const course = getCourseById(courseIds[0]);
+
+    if (!fullName || !email || !password || !course || !courseIds.length) {
+      alert('Veuillez remplir le nom, l email, le mot de passe et le cours attribué.');
+      return;
+    }
+
+    try {
+      saveStudentAccount({
+        fullName,
+        email,
+        phone,
+        password,
+        assignedCourseIds: courseIds,
+        assignedCourseTitles: courseTitles
+      });
+
+      saveStudentProfile({
+        fullName,
+        email,
+        phone,
+        assignedCourseId: courseIds[0],
+        assignedCourseIds: courseIds,
+        assignedCourseTitle: courseTitles[0],
+        assignedCourseTitles: courseTitles
+      });
+
+      form.reset();
+      populateAdminStudentCourseSelect();
+      renderAdminStudentList();
+      alert(`Compte étudiant créé et cours attribué: ${course.title}`);
+    } catch (error) {
+      console.error('Erreur création étudiant:', error);
+      alert('Erreur inattendue lors de la création du compte étudiant.');
+    }
+  });
+}
+
 function initModalButtons() {
   document.querySelectorAll('[data-modal-close]').forEach(button => {
     button.addEventListener('click', closeCourseModal);
@@ -1464,7 +1709,20 @@ async function initOnlineLoginForm() {
       return;
     }
 
-    saveStudentProfile({ email });
+    const localAccount = findStudentAccount(email, password);
+    if (localAccount) {
+      saveStudentProfile({
+        fullName: localAccount.fullName,
+        email: localAccount.email,
+        phone: localAccount.phone,
+        assignedCourseId: localAccount.assignedCourseId,
+        assignedCourseTitle: localAccount.assignedCourseTitle
+      });
+      playLogoTransition('dashboard-etudiant.html');
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<i class="ti ti-arrow-right"></i> Continuer';
+      return;
+    }
 
     submitButton.disabled = true; // Disable button to prevent multiple submissions
     submitButton.innerHTML = '<i class="ti ti-loader animate-spin"></i> Connexion en cours...'; // Show loading state
@@ -1482,10 +1740,9 @@ async function initOnlineLoginForm() {
       }
 
       if (data.user) {
-        // User successfully logged in, now check if they are an admin
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('is_admin')
+          .select('is_admin,full_name,phone,assigned_course_id,assigned_course_title')
           .eq('id', data.user.id)
           .single();
 
@@ -1495,6 +1752,14 @@ async function initOnlineLoginForm() {
           await supabase.auth.signOut(); // Log out the user if profile check fails for security
           return;
         }
+
+        saveStudentProfile({
+          fullName: profileData?.full_name || data.user.user_metadata?.full_name || '',
+          email,
+          phone: profileData?.phone || '',
+          assignedCourseId: profileData?.assigned_course_id || '',
+          assignedCourseTitle: profileData?.assigned_course_title || ''
+        });
 
         if (profileData && profileData.is_admin) {
           playLogoTransition('admin.html'); // Admin user
@@ -1517,9 +1782,17 @@ async function initOnlineLoginForm() {
 
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('is_admin,assigned_course_id,assigned_course_title')
       .eq('id', session.user.id)
       .single();
+
+    if (profileData) {
+      saveStudentProfile({
+        email: session.user.email || '',
+        assignedCourseId: profileData.assigned_course_id || '',
+        assignedCourseTitle: profileData.assigned_course_title || ''
+      });
+    }
 
     if (profileData?.is_admin) {
       playLogoTransition('admin.html');
@@ -1538,11 +1811,70 @@ async function initPaidStudentDashboard() {
 
   renderPaidStudentDashboard();
 
+  const menuToggle = document.getElementById('studentMenuToggle');
+  const mobileMenu = document.getElementById('studentMobileMenu');
+  const menuClose = document.getElementById('studentMenuClose');
+  const viewButtons = paidDashboard.querySelectorAll('[data-student-view]');
+  const overviewView = document.getElementById('studentOverviewView');
+  const courseView = document.getElementById('studentCourseView');
+  const profileView = document.getElementById('studentProfileView');
+  const backToOverview = document.getElementById('backToStudentOverview');
+  const logoutButton = document.getElementById('studentLogoutBtn');
+
+  const showView = (view) => {
+    if (overviewView) overviewView.style.display = view === 'overview' ? 'block' : 'none';
+    if (courseView) courseView.style.display = view === 'courses' ? 'block' : 'none';
+    if (profileView) profileView.style.display = view === 'profile' ? 'block' : 'none';
+    viewButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.studentView === view));
+  };
+
+  const toggleMenu = (open) => {
+    if (!mobileMenu) return;
+    mobileMenu.classList.toggle('open', open);
+    mobileMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+  };
+
+  menuToggle?.addEventListener('click', () => toggleMenu(true));
+  menuClose?.addEventListener('click', () => toggleMenu(false));
+  mobileMenu?.addEventListener('click', (event) => {
+    if (event.target === mobileMenu) toggleMenu(false);
+  });
+
   paidDashboard.addEventListener('click', (event) => {
     const button = event.target.closest('[data-paid-course]');
     if (!button) return;
     renderPaidStudentDashboard(button.dataset.paidCourse);
+    showView('courses');
+    toggleMenu(false);
   });
+
+  viewButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const nextView = button.dataset.studentView === 'profile' ? 'profile' : button.dataset.studentView === 'courses' ? 'courses' : 'overview';
+      showView(nextView);
+      toggleMenu(false);
+    });
+  });
+
+  if (backToOverview) {
+    backToOverview.addEventListener('click', () => showView('overview'));
+  }
+
+  if (logoutButton) {
+    logoutButton.addEventListener('click', async () => {
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.warn('Déconnexion Supabase indisponible.', error);
+      }
+      localStorage.removeItem(STUDENT_PROFILE_KEY);
+      playLogoTransition('cours-online.html');
+    });
+  }
+
+  await syncStudentProfileFromSession();
+  renderPaidStudentDashboard();
+  showView('overview');
 
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -1579,8 +1911,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminTabs();
     initAdminCourses();
     initAdminCourseBuilder();
+    renderAdminStudentList();
   }
   initOnlineLoginForm();
+  initAdminStudentForm();
   initPaidStudentDashboard();
   
   // Fermer le modal en cliquant dehors

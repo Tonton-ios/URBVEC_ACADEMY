@@ -36,11 +36,38 @@
       <h1>Bienvenue, <span id="studentFirstName">étudiant</span></h1>
       <p>Consultez vos cours payés, ouvrez chaque espace de cours, retrouvez vos documents, quiz et informations personnelles.</p>
     </div>
-    <a href="inscription.html" class="paid-dashboard-action">
-      <i class="ti ti-plus"></i>
-      Acheter un autre cours
-    </a>
+    <div class="dashboard-hero-actions">
+      <button type="button" class="paid-dashboard-action paid-dashboard-menu" id="studentMenuToggle">
+        <i class="ti ti-menu-2"></i>
+        Menu
+      </button>
+    </div>
   </section>
+
+  <div class="student-mobile-menu" id="studentMobileMenu" aria-hidden="true">
+    <div class="student-mobile-menu-panel">
+      <div class="student-mobile-menu-head">
+        <strong>Menu étudiant</strong>
+        <button type="button" class="student-mobile-menu-close" id="studentMenuClose"><i class="ti ti-x"></i></button>
+      </div>
+      <button type="button" class="student-menu-item active" data-student-view="overview">
+        <i class="ti ti-layout-dashboard"></i>
+        Tableau de bord
+      </button>
+      <button type="button" class="student-menu-item" data-student-view="profile">
+        <i class="ti ti-user-cog"></i>
+        Profile
+      </button>
+      <button type="button" class="student-menu-item" data-student-view="courses">
+        <i class="ti ti-book-2"></i>
+        Mes cours
+      </button>
+      <button type="button" class="student-menu-item" id="studentLogoutBtn">
+        <i class="ti ti-logout"></i>
+        Déconnexion
+      </button>
+    </div>
+  </div>
 
   <section class="paid-dashboard-grid">
     <aside class="paid-course-sidebar">
@@ -54,13 +81,17 @@
       </div>
 
       <div class="paid-sidebar-actions">
-        <button type="button" class="paid-sidebar-btn active" data-student-view="Overview">
+        <button type="button" class="paid-sidebar-btn active" data-student-view="overview">
           <i class="ti ti-layout-dashboard"></i>
-          Vue d'ensemble
+          Tableau de bord
         </button>
         <button type="button" class="paid-sidebar-btn" data-student-view="profile">
           <i class="ti ti-user-cog"></i>
           Mon profil
+        </button>
+        <button type="button" class="paid-sidebar-btn" data-student-view="courses">
+          <i class="ti ti-book-2"></i>
+          Mes cours
         </button>
       </div>
 
@@ -74,7 +105,7 @@
     </aside>
 
     <section class="paid-course-workspace" id="paidCourseWorkspace">
-      <div class="student-dashboard-view active" id="studentOverviewView">
+      <div class="student-dashboard-view active" id="studentOverviewView" data-view="overview">
         <div class="paid-course-top">
           <div>
             <span class="paid-course-status"><i class="ti ti-circle-check"></i> Accès étudiant</span>
@@ -109,8 +140,8 @@
         </div>
       </div>
 
-      <div class="student-dashboard-view" id="studentCourseView" style="display: none;">
-        <div class="paid-course-top">
+      <div class="student-dashboard-view" id="studentCourseView" data-view="courses" style="display: none;">
+      <div class="paid-course-top">
           <div>
             <button type="button" class="student-back-btn" id="backToStudentOverview">
               <i class="ti ti-arrow-left"></i>
@@ -119,6 +150,7 @@
             <span class="paid-course-status"><i class="ti ti-circle-check"></i> Accès étudiant</span>
             <h2 id="paidCourseTitle">Sélectionnez un cours</h2>
             <p id="paidCourseDescription">Vos contenus, documents et exercices apparaîtront ici après validation.</p>
+            <p class="student-assigned-course" id="studentAssignedCourse">Cours attribué: en attente</p>
           </div>
           <div class="paid-course-meta" id="paidCourseMeta">
             <span><i class="ti ti-book-2"></i> 0 sections</span>
