@@ -177,45 +177,31 @@
         </div>
 
         <div class="student-profile-grid">
-          <form class="student-profile-form" id="studentInfoForm">
+          <div class="student-profile-form student-profile-readonly">
             <h3>Mes informations</h3>
             <div class="form-group">
               <label for="profileFullName"><i class="ti ti-user"></i> Nom complet</label>
-              <input type="text" id="profileFullName" placeholder="Votre nom complet">
+              <input type="text" id="profileFullName" placeholder="Votre nom complet" readonly>
             </div>
             <div class="form-group">
               <label for="profileEmail"><i class="ti ti-mail"></i> Email</label>
-              <input type="email" id="profileEmail" placeholder="votre@email.com">
+              <input type="email" id="profileEmail" placeholder="votre@email.com" readonly>
             </div>
             <div class="form-group">
               <label for="profilePhone"><i class="ti ti-brand-whatsapp"></i> Téléphone / WhatsApp</label>
-              <input type="tel" id="profilePhone" placeholder="+509 0000-0000">
+              <input type="tel" id="profilePhone" placeholder="+509 0000-0000" readonly>
             </div>
-            <button type="submit" class="registration-submit">
-              <i class="ti ti-device-floppy"></i>
-              Enregistrer mes infos
-            </button>
-          </form>
+          </div>
 
-          <form class="student-profile-form" id="studentPasswordForm">
-            <h3>Changer mon mot de passe</h3>
-            <div class="form-group">
-              <label for="currentPassword"><i class="ti ti-lock"></i> Mot de passe actuel</label>
-              <input type="password" id="currentPassword" placeholder="Mot de passe actuel">
+          <div class="student-profile-form">
+            <h3>Accès</h3>
+            <p class="student-profile-note">Votre compte est géré par l'administration. Pour modifier des informations, contactez l'admin URBVEC Academy.</p>
+            <div class="student-profile-summary">
+              <span><i class="ti ti-book-2"></i> <strong id="profileAssignedCourses">0</strong> cours attribués</span>
+              <span><i class="ti ti-bell"></i> Notifications actives</span>
+              <span><i class="ti ti-calendar"></i> Deadlines visibles dans le contenu</span>
             </div>
-            <div class="form-group">
-              <label for="newPassword"><i class="ti ti-key"></i> Nouveau mot de passe</label>
-              <input type="password" id="newPassword" placeholder="Min. 6 caractères" minlength="6">
-            </div>
-            <div class="form-group">
-              <label for="confirmPassword"><i class="ti ti-key"></i> Confirmer</label>
-              <input type="password" id="confirmPassword" placeholder="Répétez le nouveau mot de passe" minlength="6">
-            </div>
-            <button type="submit" class="registration-submit">
-              <i class="ti ti-shield-check"></i>
-              Mettre à jour
-            </button>
-          </form>
+          </div>
         </div>
       </div>
     </section>

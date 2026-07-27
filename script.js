@@ -1045,8 +1045,8 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   if (studentFullName) studentFullName.textContent = fullName;
   if (studentEmail) studentEmail.textContent = email;
   if (studentPhone) studentPhone.textContent = phone;
-  if (studentAssignedCourse) studentAssignedCourse.textContent = `Cours attribué: ${assignedCourseTitles.join(', ') || assignedCourse?.title || 'En attente'}`;
-
+  const profileAssignedCourses = document.getElementById('profileAssignedCourses');
+  if (profileAssignedCourses) profileAssignedCourses.textContent = String(assignedCourseIds.length || (assignedCourses.length ? assignedCourses.length : 0));
   const purchasedCourses = getPurchasedCourses();
   const assignedCourses = assignedCourseIds
     .map(courseId => getCourseById(courseId))
@@ -1056,6 +1056,11 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
     || purchasedCourses[0]
     || assignedCourses[0];
   courseCount.textContent = `${purchasedCourses.length} cours`;
+
+  if (studentAssignedCourse) {
+    const assignedLabel = assignedCourseTitles.join(', ') || activeCourse?.title || assignedCourse?.title || 'En attente';
+    studentAssignedCourse.textContent = `Cours attribué: ${assignedLabel}`;
+  }
 
   if (!assignedCourses.length && !purchasedCourses.length) {
     courseList.innerHTML = '<p class="student-empty-section">Aucun cours attribué pour le moment.</p>';

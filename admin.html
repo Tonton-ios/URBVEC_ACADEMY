@@ -21,6 +21,8 @@
     <button class="admin-nav-btn" type="button" data-admin-tab="chapters"><i class="ti ti-list-details"></i> Chapitres</button>
     <button class="admin-nav-btn" type="button" data-admin-tab="resources"><i class="ti ti-file-stack"></i> Ressources</button>
     <button class="admin-nav-btn" type="button" data-admin-tab="quizzes"><i class="ti ti-help-circle"></i> Quiz</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="deadlines"><i class="ti ti-calendar-time"></i> Deadlines</button>
+    <button class="admin-nav-btn" type="button" data-admin-tab="feedback"><i class="ti ti-message-dots"></i> Feedback</button>
     <button class="admin-nav-btn" type="button" data-admin-tab="students"><i class="ti ti-users"></i> Étudiants</button>
     <button class="admin-nav-btn" type="button" data-admin-tab="payments"><i class="ti ti-receipt"></i> Paiements</button>
     <button class="admin-nav-btn" type="button" data-admin-tab="settings"><i class="ti ti-settings"></i> Paramètres</button>
@@ -211,8 +213,41 @@
         </div>
         <div class="form-group"><label for="quizQuestion"><i class="ti ti-help-circle"></i> Question</label><textarea id="quizQuestion" rows="3" placeholder="Écrire la question"></textarea></div>
         <div class="admin-form-grid"><input type="text" placeholder="Option A"><input type="text" placeholder="Option B"><input type="text" placeholder="Option C"><input type="text" placeholder="Option D"></div>
+        <div class="admin-form-grid">
+          <div class="form-group"><label for="quizPoints"><i class="ti ti-badge"></i> Points</label><input id="quizPoints" type="number" min="1" value="1"></div>
+          <div class="form-group"><label for="quizDeadline"><i class="ti ti-calendar-time"></i> Deadline</label><input id="quizDeadline" type="datetime-local"></div>
+        </div>
+        <div class="admin-form-grid">
+          <div class="form-group"><label for="quizTimeline"><i class="ti ti-timeline"></i> Timeline</label><input id="quizTimeline" type="text" placeholder="Ex: 15 min / 30 min"></div>
+          <div class="form-group"><label for="quizShuffle"><i class="ti ti-shuffle"></i> Mélanger</label><select id="quizShuffle"><option>Oui</option><option>Non</option></select></div>
+        </div>
         <button class="admin-primary-btn" type="button"><i class="ti ti-device-floppy"></i> Enregistrer la question</button>
       </form>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-deadlines">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Deadlines & devoirs</h2><span>Remise, note et feedback</span></div>
+      <div class="admin-grid-two">
+        <form class="admin-form">
+          <div class="form-group"><label for="assignmentCourse"><i class="ti ti-book-2"></i> Cours</label><select id="assignmentCourse"></select></div>
+          <div class="form-group"><label for="assignmentTitle"><i class="ti ti-file-text"></i> Devoir</label><input id="assignmentTitle" type="text" placeholder="Devoir 1"></div>
+          <div class="form-group"><label for="assignmentDeadline"><i class="ti ti-calendar-time"></i> Deadline</label><input id="assignmentDeadline" type="datetime-local"></div>
+          <div class="form-group"><label for="assignmentMaxScore"><i class="ti ti-star"></i> Note max</label><input id="assignmentMaxScore" type="number" value="20" min="1"></div>
+          <div class="form-group"><label for="assignmentInstructions"><i class="ti ti-align-left"></i> Instructions</label><textarea id="assignmentInstructions" rows="4" placeholder="Instructions de remise"></textarea></div>
+          <button class="admin-primary-btn" type="button"><i class="ti ti-plus"></i> Publier le devoir</button>
+        </form>
+        <div class="admin-panel">
+          <div class="admin-panel-head"><h2>Remises reçues</h2><span>Fichier, lien, feedback</span></div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Étudiant</th><th>Devoir</th><th>Fichier / lien</th><th>Note</th><th>Feedback</th></tr></thead>
+              <tbody><tr><td colspan="5">Aucune remise pour le moment.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -261,6 +296,18 @@
             <tr><th>Nom</th><th>Email / Téléphone</th><th>Cours attribué</th><th>Statut</th><th>Action</th></tr>
           </thead>
           <tbody id="adminStudentsTableBody"><tr><td colspan="5">Aucun étudiant chargé pour le moment.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-tab" id="admin-tab-feedback">
+    <div class="admin-panel">
+      <div class="admin-panel-head"><h2>Feedback & validation</h2><span>Commentaires aux étudiants</span></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Étudiant</th><th>Élément</th><th>Feedback</th><th>Statut</th></tr></thead>
+          <tbody><tr><td colspan="4">Aucun feedback enregistré.</td></tr></tbody>
         </table>
       </div>
     </div>
