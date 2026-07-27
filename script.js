@@ -2005,6 +2005,21 @@ function initAdminTabs() {
   });
 }
 
+function initAdminLogoutButton() {
+  const logoutButton = document.getElementById('adminLogoutBtn');
+  if (!logoutButton) return;
+
+  logoutButton.addEventListener('click', async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.warn('Déconnexion admin indisponible.', error);
+    }
+    localStorage.removeItem(STUDENT_PROFILE_KEY);
+    playLogoTransition('index.html');
+  });
+}
+
 let welcomeScrollY = 0;
 
 function lockWelcomeScroll() {
@@ -2332,6 +2347,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Elles ne s'exécutent que si l'élément '.admin-sidebar' est présent dans le DOM
   if (document.querySelector('.admin-sidebar')) {
     initAdminTabs();
+    initAdminLogoutButton();
     initAdminCourses();
     initAdminCourseBuilder();
     renderAdminStudentList();
