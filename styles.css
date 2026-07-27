@@ -2348,6 +2348,76 @@
       .footer-bottom { font-size: 11px; }
     }
 
+    @media (max-width: 430px) {
+      .nav { padding: calc(0.65rem + env(safe-area-inset-top)) 0.9rem 0.65rem; }
+      .nav-links a { padding: 10px 0.9rem; font-size: 13px; }
+      .hero { padding: 2.25rem 0.9rem; }
+      .hero h1 { font-size: 22px; line-height: 1.12; }
+      .hero p { font-size: 12px; line-height: 1.6; }
+      .hero-stats { margin-top: 1.5rem; padding-top: 1.25rem; }
+      .section { padding: 1.75rem 0.9rem; }
+      .section-title { font-size: 19px; line-height: 1.2; }
+      .section-sub { font-size: 13px; line-height: 1.55; }
+      .feature-card,
+      .testi-card,
+      .registration-form,
+      .registration-intro,
+      .online-login-form,
+      .free-course-content,
+      .dashboard-welcome,
+      .dashboard-panel,
+      .modules-panel,
+      .ai-quiz-card,
+      .course-welcome-card,
+      .student-profile-form,
+      .student-profile-card,
+      .paid-dashboard-hero,
+      .paid-course-top {
+        border-radius: 12px;
+      }
+      .registration-intro h1,
+      .online-login-intro h1,
+      .free-course-content h1,
+      .course-welcome-card h1,
+      .dashboard-welcome h1,
+      .ai-course-hero h1,
+      .paid-dashboard-hero h1 { font-size: 21px; }
+      .registration-highlights span { font-size: 11px; line-height: 1.35; }
+      .form-group label { font-size: 12px; }
+      .form-group input,
+      .form-group select { min-height: 44px; font-size: 13px; }
+      .price-lines strong,
+      .price-lines .price-total strong,
+      .payment-number-list strong { font-size: 16px; }
+      .payment-method { min-height: 54px; font-size: 14px; }
+      .selected-payment-number strong { font-size: 20px; word-break: break-word; }
+      .registration-submit { min-height: 48px; font-size: 14px; }
+      .free-course-video { min-height: 210px; }
+      .registration-notice { font-size: 13px; padding: 12px 14px; }
+      .footer { padding: 2.5rem 1rem 1.25rem; }
+      .footer-inner { padding-bottom: 1.75rem; margin-bottom: 1rem; }
+    }
+
+    @media (max-width: 380px) {
+      .nav-links a { font-size: 12px; }
+      .hero h1 { font-size: 20px; }
+      .section-title { font-size: 18px; }
+      .registration-intro h1,
+      .online-login-intro h1,
+      .free-course-content h1,
+      .course-welcome-card h1,
+      .dashboard-welcome h1,
+      .ai-course-hero h1,
+      .paid-dashboard-hero h1 { font-size: 20px; }
+      .price-info span,
+      .participation-note span,
+      .submit-notice p,
+      .payment-help { font-size: 12px; }
+      .registration-highlights { gap: 8px; }
+      .payment-methods { gap: 8px; }
+      .footer-bottom { font-size: 10px; line-height: 1.5; }
+    }
+
     /* COURSES PAGE */
     .courses-page-header {
       background: linear-gradient(135deg, #042C53 0%, #185FA5 60%, #0F6E56 100%);
