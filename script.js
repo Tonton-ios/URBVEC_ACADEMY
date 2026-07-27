@@ -2140,7 +2140,7 @@ async function initOnlineLoginForm() {
       if (data.user) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-      .select('is_admin,full_name,assigned_course_id,assigned_course_title')
+          .select('is_admin,full_name')
           .eq('id', data.user.id)
           .single();
 
@@ -2154,9 +2154,7 @@ async function initOnlineLoginForm() {
         saveStudentProfile({
           fullName: profileData?.full_name || data.user.user_metadata?.full_name || '',
           email,
-        phone: profileData?.phone || data.user?.user_metadata?.phone || '',
-          assignedCourseId: profileData?.assigned_course_id || '',
-          assignedCourseTitle: profileData?.assigned_course_title || ''
+          phone: profileData?.phone || data.user?.user_metadata?.phone || ''
         });
 
         if (profileData && profileData.is_admin) {
@@ -2180,15 +2178,13 @@ async function initOnlineLoginForm() {
 
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('is_admin,assigned_course_id,assigned_course_title')
+      .select('is_admin')
       .eq('id', session.user.id)
       .single();
 
     if (profileData) {
       saveStudentProfile({
         email: session.user.email || '',
-        assignedCourseId: profileData.assigned_course_id || '',
-        assignedCourseTitle: profileData.assigned_course_title || ''
       });
     }
 
