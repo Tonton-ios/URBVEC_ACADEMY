@@ -1512,7 +1512,8 @@ function renderAdminStudentList() {
       email: account.email || '',
       phone: account.phone || '',
       assignedCourseTitles: account.assignedCourseTitles || [],
-      source: 'Compte'
+      source: 'Compte',
+      studentId: account.profileId || account.id || ''
     });
   });
 
@@ -1546,16 +1547,16 @@ function renderAdminStudentList() {
       const courseLabel = courseTitles.length ? courseTitles.join(', ') : 'Non attribué';
       return `
         <tr>
-          <td>${escapeHtml(account.fullName || '')}</td>
-          <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
-          <td>${escapeHtml(courseLabel)}</td>
-          <td>${escapeHtml(account.source || 'Actif')}</td>
-          <td>
-            <button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button>
-            <button type="button" class="admin-mini-btn" data-delete-student="${escapeHtml(account.studentId || account.email || '')}">Supprimer</button>
-          </td>
-        </tr>
-      `;
+        <td>${escapeHtml(account.fullName || '')}</td>
+        <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
+        <td>${escapeHtml(courseLabel)}</td>
+        <td>${escapeHtml(account.source || 'Actif')}</td>
+        <td>
+          <button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button>
+          <button type="button" class="admin-mini-btn" data-delete-student="${escapeHtml(account.studentId || account.email || '')}">Supprimer</button>
+        </td>
+      </tr>
+    `;
     }).join('');
   });
 }
@@ -1844,13 +1845,22 @@ function initAdminStudentForm() {
     }
 
     try {
+      const studentProfileId = await saveStudentToDatabase({
+        fullName,
+        email,
+        phone,
+        assignedCourseIds: courseIds,
+        assignedCourseTitles: courseTitles
+      });
+
       saveStudentAccount({
         fullName,
         email,
         phone,
         password,
         assignedCourseIds: courseIds,
-        assignedCourseTitles: courseTitles
+        assignedCourseTitles: courseTitles,
+        profileId: studentProfileId || ''
       });
 
       saveStudentProfile({
@@ -1860,7 +1870,8 @@ function initAdminStudentForm() {
         assignedCourseId: courseIds[0],
         assignedCourseIds: courseIds,
         assignedCourseTitle: courseTitles[0],
-        assignedCourseTitles: courseTitles
+        assignedCourseTitles: courseTitles,
+        profileId: studentProfileId || ''
       });
 
       form.reset();
@@ -1870,6 +1881,68 @@ function initAdminStudentForm() {
     } catch (error) {
       console.error('Erreur création étudiant:', error);
       alert('Erreur inattendue lors de la création du compte étudiant.');
+    }
+  });
+}
+
+function initAdminStudentActions() {
+  const table = document.getElementById('adminStudentsTableBody');
+  if (!table) return;
+
+  table.addEventListener('click', async (event) => {
+    const assignButton = event.target.closest('[data-assign-course]');
+    const deleteButton = event.target.closest('[data-delete-student]');
+
+    if (assignButton) {
+      const email = assignButton.dataset.assignCourse;
+      const student = getStudentAccounts().find(account => account.email?.toLowerCase() === email.toLowerCase());
+      const registrations = await getRegistrationRecords();
+      const registration = registrations.find(record => record.email?.toLowerCase() === email.toLowerCase());
+      const profile = getStudentProfile();
+      const courseIds = profile.assignedCourseIds || profile.assigned_course_ids || [];
+      const selectedCourses = prompt('IDs des cours à attribuer, séparés par des virgules', courseIds.join(', '));
+      if (!selectedCourses) return;
+      const nextCourseIds = selectedCourses.split(',').map(item => item.trim()).filter(Boolean);
+      if (!nextCourseIds.length) return;
+
+      await saveStudentToDatabase({
+        fullName: student?.fullName || registration?.full_name || '',
+        email,
+        phone: student?.phone || registration?.phone || '',
+        assignedCourseIds: nextCourseIds
+      });
+
+      saveStudentProfile({
+        fullName: student?.fullName || registration?.full_name || '',
+        email,
+        phone: student?.phone || registration?.phone || '',
+        assignedCourseIds: nextCourseIds
+      });
+
+      renderAdminStudentList();
+      renderAdminOverviewStats();
+      alert('Cours mis à jour pour cet étudiant.');
+      return;
+    }
+
+    if (deleteButton) {
+      const studentId = deleteButton.dataset.deleteStudent;
+      if (!studentId) return;
+      if (!confirm('Supprimer cet élève et tous ses accès ?')) return;
+      let resolvedStudentId = studentId;
+      if (studentId.includes('@')) {
+        const { data: profileRow } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', studentId)
+          .single();
+        resolvedStudentId = profileRow?.id || studentId;
+      }
+      const ok = await removeStudentFromDatabase(resolvedStudentId);
+      if (!ok) return;
+      renderAdminStudentList();
+      renderAdminOverviewStats();
+      alert('Élève supprimé.');
     }
   });
 }
@@ -2134,7 +2207,7 @@ async function initPaidStudentDashboard() {
   const paidDashboard = document.getElementById('paidStudentDashboard');
   if (!paidDashboard) return;
 
-  renderPaidStudentDashboard();
+  await renderPaidStudentDashboard();
 
   const menuToggle = document.getElementById('studentMenuToggle');
   const mobileMenu = document.getElementById('studentMobileMenu');
@@ -2225,7 +2298,7 @@ async function initPaidStudentDashboard() {
   }
 
   await syncStudentProfileFromSession();
-  renderPaidStudentDashboard();
+  await renderPaidStudentDashboard();
   showView('overview');
   showCoursePanel('content');
 
@@ -2270,6 +2343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminPaymentsTable();
     renderAdminAssignmentsTable();
     populateAssignmentCourseSelect();
+    initAdminStudentActions();
   }
   initOnlineLoginForm();
   initAdminStudentForm();
