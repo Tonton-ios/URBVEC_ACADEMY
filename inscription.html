@@ -36,11 +36,11 @@
     <div class="registration-intro">
       <div class="section-eyebrow">Inscription en ligne</div>
       <h1>Réservez votre place à URBVEC Academy</h1>
-      <p>Choisissez votre formation, effectuez votre paiement MonCash, puis envoyez votre preuve pour finaliser votre inscription.</p>
+      <p>Remplissez vos informations, choisissez votre cours, payez seulement le prix d'inscription, puis envoyez votre preuve pour finaliser l'inscription.</p>
       <div class="registration-highlights">
-        <span><i class="ti ti-circle-check"></i> Confirmation rapide</span>
-        <span><i class="ti ti-shield-check"></i> Paiement vérifié</span>
-        <span><i class="ti ti-certificate"></i> Certificat inclus</span>
+        <span><i class="ti ti-circle-check"></i> Formulaire simple</span>
+        <span><i class="ti ti-shield-check"></i> Vérification du paiement</span>
+        <span><i class="ti ti-brand-whatsapp"></i> Contact WhatsApp rapide</span>
       </div>
     </div>
 
@@ -64,22 +64,22 @@
         <div class="form-group">
           <label for="courseSelect"><i class="ti ti-book-2"></i> Sélection du cours</label>
           <select id="courseSelect" name="course" required>
-            <option value="" data-price="">Choisissez une formation</option>
-            <option value="free-ai" data-price="0">Maîtriser l'IA au quotidien (Gratuit)</option>
-            <option value="dev-web-moderne" data-price="2500">Développement Web Moderne</option>
-            <option value="python-automatisation" data-price="3000">Python &amp; Automatisation</option>
-            <option value="react-avance" data-price="4000">React Avancé</option>
-            <option value="data-science-python" data-price="4500">Data Science avec Python</option>
-            <option value="ux-ui-figma" data-price="2500">Design UX/UI avec Figma</option>
-            <option value="branding-design-graphique" data-price="2000">Branding &amp; Design Graphique</option>
-            <option value="gestion-projet-leadership" data-price="3000">Gestion de Projet &amp; Leadership</option>
-            <option value="intro-gestion-finance" data-price="2500">Intro à la Gestion &amp; Finance</option>
-            <option value="entrepreneuriat-startup" data-price="3500">Entrepreneuriat &amp; Startup</option>
-            <option value="marketing-digital-seo" data-price="2500">Marketing Digital &amp; SEO</option>
-            <option value="content-marketing-copywriting" data-price="2000">Content Marketing &amp; Copywriting</option>
-            <option value="langues-communication" data-price="1500">Langues &amp; Communication</option>
-            <option value="developpement-personnel" data-price="1500">Développement Personnel</option>
-            <option value="competences-pratiques" data-price="1200">Compétences Pratiques</option>
+            <option value="" data-price="" data-participation-fee="">Choisissez une formation</option>
+            <option value="free-ai" data-price="0" data-participation-fee="0" data-status="Publié">Maîtriser l'IA au quotidien (Gratuit)</option>
+            <option value="dev-web-moderne" data-price="1500" data-participation-fee="2500" data-status="Publié">Développement Web en HTML5 et CSS3</option>
+            <option value="python-automatisation" data-price="3000" data-participation-fee="3000" data-status="Publié">Python &amp; Automatisation</option>
+            <option value="react-avance" data-price="4000" data-participation-fee="3500" data-status="Publié">React Avancé</option>
+            <option value="data-science-python" data-price="4500" data-participation-fee="3500" data-status="Publié">Data Science avec Python</option>
+            <option value="ux-ui-figma" data-price="2500" data-participation-fee="2500" data-status="Publié">Design UX/UI avec Figma</option>
+            <option value="branding-design-graphique" data-price="2000" data-participation-fee="2500" data-status="Publié">Branding &amp; Design Graphique</option>
+            <option value="gestion-projet-leadership" data-price="3000" data-participation-fee="3000" data-status="Publié">Gestion de Projet &amp; Leadership</option>
+            <option value="intro-gestion-finance" data-price="2500" data-participation-fee="2500" data-status="Publié">Intro à la Gestion &amp; Finance</option>
+            <option value="entrepreneuriat-startup" data-price="3500" data-participation-fee="3500" data-status="Publié">Entrepreneuriat &amp; Startup</option>
+            <option value="marketing-digital-seo" data-price="2500" data-participation-fee="2500" data-status="Publié">Marketing Digital &amp; SEO</option>
+            <option value="content-marketing-copywriting" data-price="2000" data-participation-fee="2000" data-status="Publié">Content Marketing &amp; Copywriting</option>
+            <option value="langues-communication" data-price="1500" data-participation-fee="1500" data-status="Publié">Langues &amp; Communication</option>
+            <option value="developpement-personnel" data-price="1500" data-participation-fee="1500" data-status="Publié">Développement Personnel</option>
+            <option value="competences-pratiques" data-price="1200" data-participation-fee="1200" data-status="Publié">Compétences Pratiques</option>
           </select>
         </div>
       </div>
@@ -95,22 +95,53 @@
       <div class="price-info" id="priceInfo">
         <i class="ti ti-cash"></i>
         <div>
-          <span>Montant à payer</span>
-          <strong id="priceAmount"></strong>
+          <span>Prix de la formation</span>
+          <div class="price-lines">
+            <div><span>Prix d'inscription</span><strong id="registrationFeeAmount">0 HTG</strong></div>
+            <div><span>Frais de participation</span><strong id="participationFeeAmount">0 HTG</strong></div>
+            <div class="price-total"><span>À payer maintenant</span><strong id="priceAmount"></strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="participation-note" id="participationNote">
+        <i class="ti ti-calendar-dollar"></i>
+        <div>
+          <span>Notice importante</span>
+          <p>Seulement le prix d'inscription doit être payé maintenant. Les frais de participation se feront le premier jour de la formation: 50% le premier jour et 50% au cours de la deuxième semaine. *Applicable pour les personnes qui seront en présentiel.*</p>
         </div>
       </div>
 
       <div class="moncash-alert" id="moncashAlert">
-        <i class="ti ti-alert-circle"></i>
+        <i class="ti ti-credit-card"></i>
         <div>
-          <span>Envoyez le paiement MonCash au numéro officiel</span>
-          <strong>+509 3844-9148</strong>
+          <span>Paiement</span>
+          <p class="payment-instruction">Payez le prix d'inscription sur l'un de ces numéros, puis revenez ici pour mettre l'ID de transaction et le reçu.</p>
+          <div class="payment-methods" id="paymentMethods">
+            <button type="button" class="payment-method moncash" data-payment-method="MonCash" data-payment-number="+509 3844-9148">
+              <i class="ti ti-wallet"></i>
+              <span>MonCash</span>
+            </button>
+            <button type="button" class="payment-method natcash" data-payment-method="NatCash" data-payment-number="+509 3204-5691">
+              <i class="ti ti-wallet"></i>
+              <span>NatCash</span>
+            </button>
+          </div>
+          <input type="hidden" id="paymentMethod" name="paymentMethod">
+          <div class="selected-payment-number" id="selectedPaymentNumber">
+            <span id="selectedPaymentLabel">Numéro de paiement</span>
+            <strong id="selectedPaymentValue"></strong>
+          </div>
+          <div class="payment-help">
+            Besoin de plus d'info sur les moyens de paiement ?
+            <a id="paymentInfoLink" href="#" target="_blank" rel="noopener noreferrer">Cliquez ici pour écrire sur WhatsApp</a>
+          </div>
         </div>
       </div>
 
       <div class="form-grid" id="paymentFields">
         <div class="form-group">
-          <label for="transactionId"><i class="ti ti-receipt"></i> ID de transaction MonCash</label>
+          <label for="transactionId"><i class="ti ti-receipt"></i> ID de transaction MonCash / NatCash</label>
           <input type="text" id="transactionId" name="transactionId" placeholder="Numéro d'autorisation SMS" required>
         </div>
 
@@ -118,6 +149,11 @@
           <label for="paymentProof"><i class="ti ti-file-upload"></i> Reçu ou capture d'écran</label>
           <input type="file" id="paymentProof" name="paymentProof" accept="image/*,.pdf,application/pdf" required>
         </div>
+      </div>
+
+      <div class="submit-notice" id="submitNotice">
+        <i class="ti ti-brand-whatsapp"></i>
+        <p><strong>Envoyez le message WhatsApp et accompagnez-le avec le reçu.</strong> L'admin URBVEC Academy vous contactera sous peu après vérification du paiement. Patientez, votre inscription est en cours de validation.</p>
       </div>
 
       <button type="submit" class="registration-submit" id="registrationSubmit">
@@ -165,6 +201,7 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module" src="script.js"></script>
 </body>
 </html>

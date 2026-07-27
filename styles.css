@@ -254,7 +254,9 @@
 
     /* REGISTRATION PAGE */
     .registration-section {
-      background: linear-gradient(180deg, #eef5fc 0%, #ffffff 100%);
+      background:
+        radial-gradient(circle at 16% 14%, rgba(239,159,39,0.14), transparent 28%),
+        linear-gradient(180deg, #eef5fc 0%, #ffffff 100%);
       padding: 4.5rem 2rem;
     }
     .registration-shell {
@@ -266,13 +268,14 @@
       align-items: start;
     }
     .registration-intro {
-      background: var(--urb-blue-dark);
+      background: linear-gradient(145deg, var(--urb-blue-dark) 0%, #0f477c 72%, #126552 100%);
       color: #fff;
-      border-radius: 14px;
+      border-radius: 18px;
       padding: 2rem;
       position: sticky;
       top: 88px;
       overflow: hidden;
+      box-shadow: 0 22px 55px rgba(4,44,83,0.18);
     }
     .registration-intro::after {
       content: '';
@@ -319,14 +322,17 @@
     .registration-form {
       background: #fff;
       border: 1px solid #dbe4ee;
-      border-radius: 14px;
+      border-radius: 18px;
       padding: 2rem;
-      box-shadow: 0 18px 50px rgba(4,44,83,0.08);
+      box-shadow: 0 20px 60px rgba(4,44,83,0.1);
     }
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
+    }
+    #paymentFields {
+      display: none;
     }
     .form-group {
       display: flex;
@@ -368,8 +374,14 @@
       border-color: var(--urb-blue);
       box-shadow: 0 0 0 3px rgba(24,95,165,0.12);
     }
+    .form-group select option:disabled {
+      color: #94a3b8;
+      background: #f1f5f9;
+    }
     .free-course-info,
-    .price-info {
+    .price-info,
+    .participation-note,
+    .submit-notice {
       display: none;
       align-items: center;
       gap: 12px;
@@ -385,8 +397,20 @@
       border-color: #a8dfc8;
       color: #0f6e56;
     }
+    .participation-note {
+      background: #f8fbff;
+      border-color: #dbe4ee;
+      color: var(--urb-blue-dark);
+    }
+    .submit-notice {
+      background: #e8f8f1;
+      border-color: #a8dfc8;
+      color: #0f6e56;
+    }
     .free-course-info i,
-    .price-info i {
+    .price-info i,
+    .participation-note > i,
+    .submit-notice > i {
       width: 42px;
       height: 42px;
       display: inline-flex;
@@ -401,9 +425,16 @@
     .free-course-info i {
       color: var(--urb-teal);
     }
+    .participation-note > i {
+      color: var(--urb-gold-dark);
+    }
+    .submit-notice > i {
+      color: var(--urb-teal);
+    }
     .free-course-info span,
     .price-info span,
-    .moncash-alert span {
+    .moncash-alert span,
+    .participation-note span {
       display: block;
       font-size: 12px;
       font-weight: 700;
@@ -420,8 +451,63 @@
       font-size: 24px;
       line-height: 1;
     }
-    .moncash-alert {
+    .participation-note strong {
+      display: block;
+      color: var(--urb-blue-dark);
+      font-size: 20px;
+      line-height: 1.15;
+      margin-bottom: 5px;
+    }
+    .participation-note p,
+    .payment-instruction,
+    .submit-notice p {
+      color: #4b6078;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .submit-notice strong {
+      color: #0f6e56;
+      font-weight: 900;
+    }
+    .price-info > div,
+    .participation-note > div,
+    .moncash-alert > div,
+    .submit-notice > p {
+      flex: 1;
+      min-width: 0;
+    }
+    .price-lines {
+      display: grid;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+    }
+    .price-lines > div {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(24,95,165,0.16);
+    }
+    .price-lines > div:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+    .price-lines span {
+      margin-bottom: 0;
+    }
+    .price-lines strong {
+      color: var(--urb-blue-dark);
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    .price-lines .price-total strong {
+      color: var(--urb-blue);
+      font-size: 24px;
+    }
+    .moncash-alert {
+      display: none;
       align-items: center;
       gap: 13px;
       margin: 1rem 0;
@@ -442,6 +528,107 @@
       font-size: 26px;
       line-height: 1.1;
       letter-spacing: 0.5px;
+    }
+    .payment-methods {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 0.75rem;
+    }
+    .payment-method {
+      min-height: 58px;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .payment-help {
+      margin-top: 0.85rem;
+      color: #1a1a2e;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .payment-help a {
+      display: inline-block;
+      margin-top: 0.35rem;
+      color: var(--urb-blue-dark);
+      font-weight: 700;
+      text-decoration: underline;
+    }
+    .payment-help a:hover {
+      color: var(--urb-blue);
+    }
+    .payment-method i {
+      font-size: 21px;
+    }
+    .payment-method span {
+      display: inline;
+      margin-bottom: 0;
+      color: inherit;
+      font-size: 15px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .payment-method.moncash {
+      background: #d71920;
+      box-shadow: 0 12px 24px rgba(215,25,32,0.18);
+    }
+    .payment-method.natcash {
+      background: #f59e0b;
+      box-shadow: 0 12px 24px rgba(245,158,11,0.2);
+    }
+    .payment-method:hover,
+    .payment-method.active {
+      transform: translateY(-1px);
+      border-color: #fff;
+      box-shadow: 0 14px 32px rgba(4,44,83,0.2);
+    }
+    .selected-payment-number {
+      display: none;
+      margin-top: 0.85rem;
+      padding: 0.85rem;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #f5c978;
+    }
+    .selected-payment-number span {
+      color: #6b3b00;
+      margin-bottom: 6px;
+    }
+    .selected-payment-number strong {
+      font-size: 24px;
+    }
+    .payment-number-list {
+      display: grid;
+      gap: 8px;
+    }
+    .payment-number-list strong {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 22px;
+    }
+    .payment-number-list em {
+      min-width: 82px;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--urb-gold-dark);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      padding: 5px 9px;
     }
     .registration-submit {
       width: 100%;
@@ -1256,6 +1443,14 @@
       border-color: #a8dfc8;
       background: #f0fbf6;
     }
+    .admin-course-list-item.unavailable {
+      border-color: #cbd5e1;
+      background: #f1f5f9;
+      opacity: 0.76;
+    }
+    .admin-course-list-item.unavailable strong {
+      color: #64748b;
+    }
     .admin-course-list-item strong,
     .admin-course-list-item span {
       display: block;
@@ -2066,6 +2261,13 @@
       .free-course-info strong,
       .price-info strong,
       .moncash-alert strong { font-size: 20px; }
+      .price-lines > div { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .price-lines strong,
+      .price-lines .price-total strong,
+      .payment-number-list strong { font-size: 18px; }
+      .payment-methods { grid-template-columns: 1fr; }
+      .participation-note,
+      .submit-notice { align-items: flex-start; }
       .moncash-alert { align-items: flex-start; }
       .online-login-section { padding: 2rem 1rem; align-items: flex-start; }
       .online-login-form { padding: 1rem; border-radius: 10px; }

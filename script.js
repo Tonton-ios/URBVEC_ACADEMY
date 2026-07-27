@@ -137,19 +137,113 @@ function enrollCourse() {
   closeCourseModal();
 }
 
+const unavailableCourseStatuses = ['Indisponible', 'Brouillon', 'Archivé'];
+
+function isCourseAvailable(course) {
+  return course && !unavailableCourseStatuses.includes(course.status);
+}
+
+function formatHtg(amount) {
+  return `${Number(amount || 0).toLocaleString('fr-FR')} HTG`;
+}
+
+function getCourseRegistrationFee(course) {
+  return Number(course?.price || 0);
+}
+
+function getCourseParticipationFee(course) {
+  return Number(course?.participationFee || 0);
+}
+
+function getCourseTotalFee(course) {
+  return getCourseRegistrationFee(course) + getCourseParticipationFee(course);
+}
+
+function renderRegistrationCourseOptions(courseSelect) {
+  if (!courseSelect) return;
+
+  Array.from(courseSelect.options).forEach(option => {
+    if (!option.value) return;
+
+    const status = option.dataset.status || 'Publié';
+    const isUnavailable = unavailableCourseStatuses.includes(status);
+    option.disabled = isUnavailable;
+
+    if (isUnavailable && !option.textContent.includes('(Indisponible)')) {
+      option.textContent = `${option.textContent} (Indisponible)`;
+    }
+  });
+}
+
+async function saveRegistrationToDatabase(registration) {
+  try {
+    const { error } = await supabase
+      .from('registrations')
+      .insert([registration]);
+
+    if (error) {
+      console.warn("Impossible d'enregistrer l'inscription dans Supabase:", error.message);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.warn("Supabase indisponible pour l'inscription:", error);
+    return false;
+  }
+}
+
+function getTrainerWhatsappUrl(registration) {
+  const trainerWhatsappNumber = '50938449148';
+  const message = [
+    'Nouvelle inscription URBVEC Academy',
+    '',
+    `Nom complet: ${registration.full_name}`,
+    `Email: ${registration.email}`,
+    `Téléphone: ${registration.phone}`,
+    `Formation choisie: ${registration.course_title}`,
+    `Prix inscription: ${formatHtg(registration.registration_fee)}`,
+    `Frais participation: ${formatHtg(registration.participation_fee)}`,
+    `Méthode paiement: ${registration.payment_method}`,
+    `ID transaction: ${registration.transaction_id}`,
+    '',
+    '*Envoyez le message et accompagnez-le avec le reçu.*',
+    "L'admin URBVEC Academy vous contactera sous peu après vérification du paiement. Patientez."
+  ].join('\n');
+
+  return `https://wa.me/${trainerWhatsappNumber}?text=${encodeURIComponent(message)}`;
+}
+
+function getPaymentInfoWhatsappUrl() {
+  const trainerWhatsappNumber = '50938449148';
+  const message = "J'ai besoin de plus d'info sur les moyens de paiement.";
+  return `https://wa.me/${trainerWhatsappNumber}?text=${encodeURIComponent(message)}`;
+}
+
 function initRegistrationForm() {
   const registrationForm = document.getElementById('registrationForm');
   const courseSelect = document.getElementById('courseSelect');
   const priceInfo = document.getElementById('priceInfo');
   const priceAmount = document.getElementById('priceAmount');
+  const registrationFeeAmount = document.getElementById('registrationFeeAmount');
+  const participationFeeAmount = document.getElementById('participationFeeAmount');
+  const participationNote = document.getElementById('participationNote');
   const freeCourseInfo = document.getElementById('freeCourseInfo');
   const moncashAlert = document.getElementById('moncashAlert');
+  const paymentMethodInput = document.getElementById('paymentMethod');
+  const selectedPaymentNumber = document.getElementById('selectedPaymentNumber');
+  const selectedPaymentLabel = document.getElementById('selectedPaymentLabel');
+  const selectedPaymentValue = document.getElementById('selectedPaymentValue');
   const paymentFields = document.getElementById('paymentFields');
+  const submitNotice = document.getElementById('submitNotice');
   const registrationSubmit = document.getElementById('registrationSubmit');
+  const paymentInfoLink = document.getElementById('paymentInfoLink');
   const transactionId = document.getElementById('transactionId');
   const paymentProof = document.getElementById('paymentProof');
 
   if (!registrationForm) return;
+  renderRegistrationCourseOptions(courseSelect);
+  if (paymentInfoLink) paymentInfoLink.href = getPaymentInfoWhatsappUrl();
 
   const params = new URLSearchParams(window.location.search);
   const isFreeMode = params.get('mode') === 'gratuit';
@@ -186,33 +280,61 @@ function initRegistrationForm() {
 
   if (!courseSelect || !priceInfo || !priceAmount) return;
 
+  const resetPaymentMethod = () => {
+    if (paymentMethodInput) paymentMethodInput.value = '';
+    document.querySelectorAll('[data-payment-method]').forEach(button => {
+      button.classList.remove('active');
+    });
+    if (selectedPaymentNumber) selectedPaymentNumber.style.display = 'none';
+    if (selectedPaymentValue) selectedPaymentValue.textContent = '';
+    if (paymentFields) paymentFields.style.display = 'none';
+    if (transactionId) transactionId.required = false;
+    if (paymentProof) paymentProof.required = false;
+  };
+
+  const showPaymentFields = () => {
+    if (paymentFields) paymentFields.style.display = 'grid';
+    if (transactionId) transactionId.required = true;
+    if (paymentProof) paymentProof.required = true;
+  };
+
   const handleCourseChange = () => {
     const selectedOption = courseSelect.options[courseSelect.selectedIndex];
-    const price = selectedOption.value ? Number(selectedOption.dataset.price) : null;
+    const registrationFee = selectedOption.value ? Number(selectedOption.dataset.price || 0) : null;
+    const participationFee = selectedOption.value ? Number(selectedOption.dataset.participationFee || 0) : 0;
+    const amountDueNow = Number(registrationFee || 0);
+    resetPaymentMethod();
 
-    if (selectedOption.value === "" || price === null) {
+    if (selectedOption.value === "" || registrationFee === null) {
       priceInfo.style.display = 'none';
+      if (participationNote) participationNote.style.display = 'none';
+      if (freeCourseInfo) freeCourseInfo.style.display = 'none';
+      if (moncashAlert) moncashAlert.style.display = 'none';
+      if (submitNotice) submitNotice.style.display = 'none';
+      if (registrationSubmit) {
+        registrationSubmit.innerHTML = '<i class="ti ti-send"></i><span>Soumettre l\'inscription</span>';
+      }
       return;
     }
 
-    if (price === 0) {
+    if (amountDueNow === 0) {
       priceInfo.style.display = 'none';
+      if (participationNote) participationNote.style.display = 'none';
       if (freeCourseInfo) freeCourseInfo.style.display = 'flex';
       if (moncashAlert) moncashAlert.style.display = 'none';
-      if (paymentFields) paymentFields.style.display = 'none';
-      if (transactionId) transactionId.required = false;
-      if (paymentProof) paymentProof.required = false;
+      if (submitNotice) submitNotice.style.display = 'none';
       if (registrationSubmit) {
         registrationSubmit.innerHTML = '<i class="ti ti-player-play"></i><span>Démarrer le cours</span>';
       }
     } else {
-      priceAmount.textContent = `${price.toLocaleString('fr-FR')} HTG`;
+      if (registrationFeeAmount) registrationFeeAmount.textContent = formatHtg(registrationFee);
+      if (participationFeeAmount) participationFeeAmount.textContent = formatHtg(participationFee);
+      priceAmount.textContent = formatHtg(amountDueNow);
       priceInfo.style.display = 'flex';
+      if (participationNote) participationNote.style.display = 'flex';
       if (freeCourseInfo) freeCourseInfo.style.display = 'none';
       if (moncashAlert) moncashAlert.style.display = 'flex';
-      if (paymentFields) paymentFields.style.display = 'grid';
-      if (transactionId) transactionId.required = true;
-      if (paymentProof) paymentProof.required = true;
+      if (submitNotice) submitNotice.style.display = 'flex';
       if (registrationSubmit) {
         registrationSubmit.innerHTML = '<i class="ti ti-send"></i><span>Soumettre l\'inscription</span>';
       }
@@ -220,9 +342,24 @@ function initRegistrationForm() {
   };
 
   courseSelect.addEventListener('change', handleCourseChange);
+  document.querySelectorAll('[data-payment-method]').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('[data-payment-method]').forEach(item => item.classList.remove('active'));
+      button.classList.add('active');
+
+      if (paymentMethodInput) paymentMethodInput.value = button.dataset.paymentMethod || '';
+      if (selectedPaymentLabel) selectedPaymentLabel.textContent = `Numéro ${button.dataset.paymentMethod || 'paiement'}`;
+      if (selectedPaymentValue) selectedPaymentValue.textContent = button.dataset.paymentNumber || '';
+      if (selectedPaymentNumber) selectedPaymentNumber.style.display = 'block';
+      if (paymentFields) paymentFields.style.display = 'grid';
+      if (transactionId) transactionId.required = true;
+      if (paymentProof) paymentProof.required = true;
+      showPaymentFields();
+    });
+  });
   handleCourseChange(); // Initial check
 
-  registrationForm.addEventListener('submit', (event) => {
+  registrationForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     if (!registrationForm.checkValidity()) {
@@ -232,23 +369,66 @@ function initRegistrationForm() {
 
     const selectedCourseId = courseSelect.value;
     const selectedOption = courseSelect.options[courseSelect.selectedIndex];
-    const price = selectedOption.value ? Number(selectedOption.dataset.price) : null;
+    const registrationFee = selectedOption.value ? Number(selectedOption.dataset.price || 0) : null;
+    const participationFee = selectedOption.value ? Number(selectedOption.dataset.participationFee || 0) : 0;
+    const amountDueNow = Number(registrationFee || 0);
     const fullName = document.getElementById('fullName')?.value.trim();
     const email = document.getElementById('email')?.value.trim();
     const phone = document.getElementById('phone')?.value.trim();
+    const proofFile = paymentProof?.files?.[0];
 
     if (!selectedCourseId) return;
+    if (selectedOption.disabled) return;
+    if (amountDueNow > 0 && !paymentMethodInput?.value) {
+      alert('Veuillez choisir MonCash ou NatCash avant de soumettre.');
+      return;
+    }
 
     setActiveCourseId(selectedCourseId);
     saveStudentProfile({ fullName, email, phone });
 
-    if (price === 0) {
+    if (amountDueNow === 0) {
       playLogoTransition('cours-gratuit.html');
       return;
     }
 
+    if (registrationSubmit) {
+      registrationSubmit.disabled = true;
+      registrationSubmit.innerHTML = '<i class="ti ti-loader animate-spin"></i><span>Envoi en cours...</span>';
+    }
+
+    const registration = {
+      full_name: fullName,
+      email,
+      phone,
+      course_id: selectedCourseId,
+      course_title: selectedOption.textContent.replace(' (Indisponible)', '').trim(),
+      registration_fee: registrationFee,
+      participation_fee: participationFee,
+      amount_due_now: amountDueNow,
+      payment_method: paymentMethodInput.value,
+      transaction_id: transactionId?.value.trim() || '',
+      receipt_file_name: proofFile?.name || '',
+      status: 'En attente de vérification'
+    };
+
+    const whatsappWindow = window.open('', '_blank');
+    const savePromise = saveRegistrationToDatabase(registration);
     savePurchasedCourseId(selectedCourseId);
-    playLogoTransition('dashboard-etudiant.html');
+    const whatsappUrl = getTrainerWhatsappUrl(registration);
+    await savePromise;
+    if (whatsappWindow) {
+      whatsappWindow.location.href = whatsappUrl;
+    } else {
+      window.location.href = whatsappUrl;
+    }
+
+    alert("Inscription envoyée. Une fenêtre WhatsApp va s'ouvrir: envoyez le message et ajoutez le reçu/capture d'écran.");
+
+    if (registrationSubmit) {
+      registrationSubmit.disabled = false;
+      registrationSubmit.innerHTML = '<i class="ti ti-send"></i><span>Soumettre l\'inscription</span>';
+    }
   });
 }
 
@@ -426,21 +606,21 @@ const STUDENT_ACTIVITY_KEY = 'urbvec_student_activity';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
 
 const defaultCourses = [
-  { id: 'free-ai', title: "Maîtriser l'IA au quotidien", slug: 'cours-gratuit', price: 0, status: 'Publié', description: "Apprendre à utiliser l'intelligence artificielle dans le quotidien." },
-  { id: 'dev-web-moderne', title: "Développement Web Moderne", slug: 'dev-web-moderne', price: 2500, status: 'Publié', description: "Maîtrisez HTML, CSS et JavaScript pour créer des interfaces web professionnelles." },
-  { id: 'gestion-projet-leadership', title: "Gestion de Projet & Leadership", slug: 'gestion-projet-leadership', price: 3000, status: 'Publié', description: "Apprenez les méthodologies agiles et le management d'équipe." },
-  { id: 'python-automatisation', title: "Python & Automatisation", slug: 'python-automatisation', price: 3000, status: 'Publié', description: "Apprenez Python pour automatiser des tâches répétitives." },
-  { id: 'ux-ui-figma', title: "Design UX/UI avec Figma", slug: 'ux-ui-figma', price: 2500, status: 'Publié', description: "Créez des interfaces intuitives avec Figma." },
-  { id: 'marketing-digital-seo', title: "Marketing Digital & SEO", slug: 'marketing-digital-seo', price: 2500, status: 'Publié', description: "Dominez les stratégies de marketing digital et le SEO." },
-  { id: 'react-avance', title: "React Avancé", slug: 'react-avance', price: 4000, status: 'Publié', description: "Maîtrisez React pour construire des applications web modernes." },
-  { id: 'entrepreneuriat-startup', title: "Entrepreneuriat & Startup", slug: 'entrepreneuriat-startup', price: 3500, status: 'Publié', description: "Apprenez à lancer et développer votre startup." },
-  { id: 'intro-gestion-finance', title: "Intro à la Gestion & Finance", slug: 'intro-gestion-finance', price: 2500, status: 'Publié', description: "Maîtrisez les bases de la gestion d'entreprise." },
-  { id: 'data-science-python', title: "Data Science avec Python", slug: 'data-science-python', price: 4500, status: 'Publié', description: "Analysez des données complexes avec Python." },
-  { id: 'branding-design-graphique', title: "Branding & Design Graphique", slug: 'branding-design-graphique', price: 2000, status: 'Publié', description: "Créez des identités visuelles fortes." },
-  { id: 'langues-communication', title: "Langues & Communication", slug: 'langues-communication', price: 1500, status: 'Publié', description: "Perfectionnez votre expression écrite et orale." },
-  { id: 'content-marketing-copywriting', title: "Content Marketing & Copywriting", slug: 'content-marketing-copywriting', price: 2000, status: 'Publié', description: "Écrivez du contenu convaincant." },
-  { id: 'developpement-personnel', title: "Développement Personnel", slug: 'developpement-personnel', price: 1500, status: 'Publié', description: "Boostez votre confiance et gérez votre temps." },
-  { id: 'competences-pratiques', title: "Compétences Pratiques", slug: 'competences-pratiques', price: 1200, status: 'Publié', description: "Maîtrisez les outils informatiques essentiels." }
+  { id: 'free-ai', title: "Maîtriser l'IA au quotidien", slug: 'cours-gratuit', price: 0, participationFee: 0, status: 'Publié', description: "Apprendre à utiliser l'intelligence artificielle dans le quotidien." },
+  { id: 'dev-web-moderne', title: "Développement Web Moderne", slug: 'dev-web-moderne', price: 2500, participationFee: 0, status: 'Publié', description: "Maîtrisez HTML, CSS et JavaScript pour créer des interfaces web professionnelles." },
+  { id: 'gestion-projet-leadership', title: "Gestion de Projet & Leadership", slug: 'gestion-projet-leadership', price: 3000, participationFee: 0, status: 'Publié', description: "Apprenez les méthodologies agiles et le management d'équipe." },
+  { id: 'python-automatisation', title: "Python & Automatisation", slug: 'python-automatisation', price: 3000, participationFee: 0, status: 'Publié', description: "Apprenez Python pour automatiser des tâches répétitives." },
+  { id: 'ux-ui-figma', title: "Design UX/UI avec Figma", slug: 'ux-ui-figma', price: 2500, participationFee: 0, status: 'Publié', description: "Créez des interfaces intuitives avec Figma." },
+  { id: 'marketing-digital-seo', title: "Marketing Digital & SEO", slug: 'marketing-digital-seo', price: 2500, participationFee: 0, status: 'Publié', description: "Dominez les stratégies de marketing digital et le SEO." },
+  { id: 'react-avance', title: "React Avancé", slug: 'react-avance', price: 4000, participationFee: 0, status: 'Publié', description: "Maîtrisez React pour construire des applications web modernes." },
+  { id: 'entrepreneuriat-startup', title: "Entrepreneuriat & Startup", slug: 'entrepreneuriat-startup', price: 3500, participationFee: 0, status: 'Publié', description: "Apprenez à lancer et développer votre startup." },
+  { id: 'intro-gestion-finance', title: "Intro à la Gestion & Finance", slug: 'intro-gestion-finance', price: 2500, participationFee: 0, status: 'Publié', description: "Maîtrisez les bases de la gestion d'entreprise." },
+  { id: 'data-science-python', title: "Data Science avec Python", slug: 'data-science-python', price: 4500, participationFee: 0, status: 'Publié', description: "Analysez des données complexes avec Python." },
+  { id: 'branding-design-graphique', title: "Branding & Design Graphique", slug: 'branding-design-graphique', price: 2000, participationFee: 0, status: 'Publié', description: "Créez des identités visuelles fortes." },
+  { id: 'langues-communication', title: "Langues & Communication", slug: 'langues-communication', price: 1500, participationFee: 0, status: 'Publié', description: "Perfectionnez votre expression écrite et orale." },
+  { id: 'content-marketing-copywriting', title: "Content Marketing & Copywriting", slug: 'content-marketing-copywriting', price: 2000, participationFee: 0, status: 'Publié', description: "Écrivez du contenu convaincant." },
+  { id: 'developpement-personnel', title: "Développement Personnel", slug: 'developpement-personnel', price: 1500, participationFee: 0, status: 'Publié', description: "Boostez votre confiance et gérez votre temps." },
+  { id: 'competences-pratiques', title: "Compétences Pratiques", slug: 'competences-pratiques', price: 1200, participationFee: 0, status: 'Publié', description: "Maîtrisez les outils informatiques essentiels." }
 ];
 
 const defaultCourseContent = [
@@ -510,7 +690,13 @@ function getCourses() {
     const saved = localStorage.getItem(COURSES_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map(course => ({
+          participationFee: 0,
+          status: 'Publié',
+          ...course
+        }));
+      }
     }
   } catch (error) {
     console.warn('Impossible de lire la liste des cours.', error);
@@ -552,7 +738,7 @@ function savePurchasedCourseId(courseId) {
   if (!courseId || courseId === 'free-ai') return;
   const courses = getCourses();
   const course = courses.find(item => item.id === courseId);
-  if (!course || Number(course.price || 0) <= 0) return;
+  if (!course || getCourseTotalFee(course) <= 0) return;
 
   const purchasedIds = getPurchasedCourseIds();
   if (!purchasedIds.includes(courseId)) {
@@ -741,7 +927,7 @@ function getPurchasedCourses() {
   const courses = getCourses();
   return purchasedIds
     .map(courseId => courses.find(course => course.id === courseId))
-    .filter(course => course && Number(course.price || 0) > 0);
+    .filter(course => course && getCourseTotalFee(course) > 0);
 }
 
 function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
@@ -783,7 +969,7 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   courseList.innerHTML = purchasedCourses.map(course => `
     <button type="button" class="paid-course-item ${course.id === activeCourse.id ? 'active' : ''}" data-paid-course="${course.id}">
       <span>${escapeHtml(course.title)}</span>
-      <strong>${Number(course.price || 0).toLocaleString('fr-FR')} HTG</strong>
+      <strong>${formatHtg(getCourseTotalFee(course))}</strong>
     </button>
   `).join('');
 
@@ -856,14 +1042,32 @@ function renderAdminCourseList() {
   const activeCourseId = getActiveCourseId();
   const courses = getCourses();
   courseList.innerHTML = courses.map(course => `
-    <div class="admin-course-list-item ${course.id === activeCourseId ? 'active' : ''}">
+    <div class="admin-course-list-item ${course.id === activeCourseId ? 'active' : ''} ${isCourseAvailable(course) ? '' : 'unavailable'}">
       <div>
         <strong>${escapeHtml(course.title)}</strong>
-        <span>${escapeHtml(course.status)} · ${Number(course.price || 0).toLocaleString('fr-FR')} HTG · ${escapeHtml(course.slug)}</span>
+        <span>${escapeHtml(course.status)} · Inscription ${formatHtg(getCourseRegistrationFee(course))} · Participation ${formatHtg(getCourseParticipationFee(course))} · ${escapeHtml(course.slug)}</span>
       </div>
       <button type="button" data-select-course="${course.id}"><i class="ti ti-check"></i> Utiliser</button>
     </div>
   `).join('');
+}
+
+function fillAdminCourseForm(course) {
+  if (!course) return;
+
+  const titleInput = document.getElementById('courseTitle');
+  const slugInput = document.getElementById('courseSlug');
+  const priceInput = document.getElementById('coursePrice');
+  const participationFeeInput = document.getElementById('courseParticipationFee');
+  const statusInput = document.getElementById('courseStatus');
+  const descriptionInput = document.getElementById('courseDescription');
+
+  if (titleInput) titleInput.value = course.title || '';
+  if (slugInput) slugInput.value = course.slug || '';
+  if (priceInput) priceInput.value = getCourseRegistrationFee(course);
+  if (participationFeeInput) participationFeeInput.value = getCourseParticipationFee(course);
+  if (statusInput) statusInput.value = course.status || 'Publié';
+  if (descriptionInput) descriptionInput.value = course.description || '';
 }
 
 function initAdminCourses() {
@@ -878,12 +1082,14 @@ function initAdminCourses() {
   }
 
   renderAdminCourseList();
+  fillAdminCourseForm(getCourses().find(course => course.id === getActiveCourseId()));
 
   courseForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const titleInput = document.getElementById('courseTitle');
     const slugInput = document.getElementById('courseSlug');
     const priceInput = document.getElementById('coursePrice');
+    const participationFeeInput = document.getElementById('courseParticipationFee');
     const statusInput = document.getElementById('courseStatus');
     const descriptionInput = document.getElementById('courseDescription');
     const title = titleInput.value.trim();
@@ -896,6 +1102,7 @@ function initAdminCourses() {
     if (course) {
       course.title = title;
       course.price = Number(priceInput.value || 0);
+      course.participationFee = Number(participationFeeInput.value || 0);
       course.status = statusInput.value;
       course.description = descriptionInput.value.trim();
     } else {
@@ -904,6 +1111,7 @@ function initAdminCourses() {
         title,
         slug,
         price: Number(priceInput.value || 0),
+        participationFee: Number(participationFeeInput.value || 0),
         status: statusInput.value,
         description: descriptionInput.value.trim()
       };
@@ -922,6 +1130,8 @@ function initAdminCourses() {
     const button = event.target.closest('[data-select-course]');
     if (!button) return;
     setActiveCourseId(button.dataset.selectCourse);
+    const selectedCourse = getCourses().find(course => course.id === button.dataset.selectCourse);
+    fillAdminCourseForm(selectedCourse);
     renderAdminCourseList();
     renderAdminCourseBuilder();
   });

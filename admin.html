@@ -82,8 +82,9 @@
         <div class="admin-form-grid">
           <div class="form-group"><label for="courseTitle"><i class="ti ti-book"></i> Titre</label><input id="courseTitle" type="text" placeholder="Maîtriser l'IA au quotidien" required></div>
           <div class="form-group"><label for="courseSlug"><i class="ti ti-link"></i> Slug</label><input id="courseSlug" type="text" placeholder="maitriser-ia-quotidien"></div>
-          <div class="form-group"><label for="coursePrice"><i class="ti ti-cash"></i> Prix HTG</label><input id="coursePrice" type="number" placeholder="0"></div>
-          <div class="form-group"><label for="courseStatus"><i class="ti ti-toggle-right"></i> Statut</label><select id="courseStatus"><option>Publié</option><option>Brouillon</option><option>Archivé</option></select></div>
+          <div class="form-group"><label for="coursePrice"><i class="ti ti-cash"></i> Prix d'inscription HTG</label><input id="coursePrice" type="number" placeholder="0"></div>
+          <div class="form-group"><label for="courseParticipationFee"><i class="ti ti-ticket"></i> Frais de participation HTG</label><input id="courseParticipationFee" type="number" placeholder="0"></div>
+          <div class="form-group"><label for="courseStatus"><i class="ti ti-toggle-right"></i> Statut</label><select id="courseStatus"><option>Publié</option><option>Indisponible</option><option>Brouillon</option><option>Archivé</option></select></div>
         </div>
         <div class="form-group"><label for="courseDescription"><i class="ti ti-align-left"></i> Description</label><textarea id="courseDescription" rows="4" placeholder="Description du cours"></textarea></div>
         <button class="admin-primary-btn" type="submit"><i class="ti ti-device-floppy"></i> Enregistrer le cours</button>
@@ -231,7 +232,7 @@
 
   <section class="admin-tab" id="admin-tab-payments">
     <div class="admin-panel">
-      <div class="admin-panel-head"><h2>Paiements MonCash</h2><span>Preuves à valider</span></div>
+      <div class="admin-panel-head"><h2>Paiements MonCash / NatCash</h2><span>Preuves à valider</span></div>
       <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Étudiant</th><th>Cours</th><th>Transaction</th><th>Statut</th></tr></thead><tbody><tr><td colspan="4">Aucun paiement en attente.</td></tr></tbody></table></div>
     </div>
   </section>

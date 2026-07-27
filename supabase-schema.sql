@@ -56,6 +56,23 @@ create table if not exists public.course_items (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.registrations (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  email text not null,
+  phone text not null,
+  course_id text not null,
+  course_title text not null,
+  registration_fee numeric not null default 0,
+  participation_fee numeric not null default 0,
+  amount_due_now numeric not null default 0,
+  payment_method text not null,
+  transaction_id text not null,
+  receipt_file_name text default '',
+  status text not null default 'En attente de vérification',
+  created_at timestamptz not null default now()
+);
+
 create index if not exists course_sections_course_position_idx
   on public.course_sections(course_id, position);
 
@@ -70,6 +87,7 @@ alter table public.profiles enable row level security;
 alter table public.courses enable row level security;
 alter table public.course_sections enable row level security;
 alter table public.course_items enable row level security;
+alter table public.registrations enable row level security;
 
 drop policy if exists "Public can read published courses" on public.courses;
 create policy "Public can read published courses"
@@ -123,6 +141,16 @@ using (public.is_admin());
 drop policy if exists "Prototype admin can manage items" on public.course_items;
 create policy "Prototype admin can manage items"
 on public.course_items for all
+using (public.is_admin());
+
+drop policy if exists "Public can submit registrations" on public.registrations;
+create policy "Public can submit registrations"
+on public.registrations for insert
+with check (true);
+
+drop policy if exists "Admins can read registrations" on public.registrations;
+create policy "Admins can read registrations"
+on public.registrations for select
 using (public.is_admin());
 
 drop policy if exists "Public can read course files" on storage.objects;
