@@ -203,6 +203,106 @@
     }
     .course-duration { font-size: 11px; color: rgba(255,255,255,0.4); }
 
+    option:disabled { color: #8b949e; background: #f3f4f6; }
+    select option[disabled] { color: #8b949e; }
+
+    /* CONTACT */
+    .contact-page {
+      background:
+        radial-gradient(circle at top left, rgba(239,159,39,0.18), transparent 32%),
+        linear-gradient(135deg, #f5f9ff 0%, #e9f2fb 48%, #ffffff 100%);
+      min-height: calc(var(--cover-height, 100vh) - 64px);
+      padding: 3.5rem 2rem 4.5rem;
+    }
+    .contact-hero,
+    .contact-grid {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    .contact-hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+      margin-bottom: 1.5rem;
+    }
+    .contact-hero-copy,
+    .contact-hero-card,
+    .contact-form,
+    .contact-side-card {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(24,95,165,0.12);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(4,44,83,0.08);
+    }
+    .contact-hero-copy { padding: 2.25rem; }
+    .contact-hero-copy h1,
+    .contact-form h2 {
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.05;
+      color: var(--urb-blue-dark);
+      margin-bottom: 1rem;
+    }
+    .contact-hero-copy p {
+      color: #506079;
+      line-height: 1.75;
+      max-width: 56ch;
+    }
+    .contact-quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+    }
+    .contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1rem;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--urb-blue-dark);
+      text-decoration: none;
+      border: 1px solid rgba(24,95,165,0.12);
+      font-weight: 600;
+    }
+    .contact-hero-card { padding: 1.8rem; display: flex; flex-direction: column; justify-content: space-between; }
+    .contact-hero-card h2,
+    .contact-side-card h3 { color: var(--urb-blue-dark); margin-bottom: 0.6rem; }
+    .contact-detail-list { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+    .contact-detail-list div,
+    .contact-side-card li {
+      display: flex; flex-direction: column; gap: 0.2rem;
+      padding: 0.95rem 1rem; border-radius: 14px; background: #f7fbff;
+    }
+    .contact-detail-list strong { color: var(--urb-blue-dark); }
+    .contact-detail-list span,
+    .contact-side-card li { color: #5a697f; }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 1.5rem;
+    }
+    .contact-form { padding: 1.8rem; }
+    .contact-form .form-group { margin-top: 1rem; }
+    .contact-form label { display: block; margin-bottom: 0.45rem; font-weight: 600; color: var(--urb-blue-dark); }
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      border: 1px solid rgba(24,95,165,0.14);
+      border-radius: 14px;
+      padding: 0.95rem 1rem;
+      background: #fff;
+      font: inherit;
+      color: var(--urb-blue-dark);
+    }
+    .contact-form textarea { min-height: 160px; }
+    .contact-side { display: grid; gap: 1.2rem; }
+    .contact-side-card { padding: 1.5rem; }
+    .contact-side-card ul { list-style: none; display: grid; gap: 0.85rem; margin-top: 1rem; }
+    .contact-side-card li::before { content: '•'; color: var(--urb-gold); font-weight: 900; margin-right: 0.45rem; }
+
     /* ABOUT */
     .about-inner {
       display: grid; grid-template-columns: 1fr 1fr;
@@ -2468,6 +2568,13 @@
       .admin-course-picker,
       .admin-content-layout,
       .admin-form-grid { grid-template-columns: 1fr; }
+      .contact-page { padding: 2rem 1.25rem 3rem; }
+      .contact-hero,
+      .contact-grid { grid-template-columns: 1fr; }
+      .contact-hero-copy,
+      .contact-hero-card,
+      .contact-form,
+      .contact-side-card { padding: 1.25rem; border-radius: 16px; }
       
       .footer-inner { grid-template-columns: 1fr 1fr; gap: 1.25rem; padding: 1.75rem 0; }
       .footer-brand { grid-column: 1 / -1; }
@@ -2564,6 +2671,11 @@
       .admin-outline-section-head,
       .admin-outline-item { align-items: flex-start; flex-direction: column; }
       .admin-outline-tools { width: 100%; justify-content: flex-start; }
+      .contact-page { padding: 1.5rem 0.9rem 2.5rem; }
+      .contact-hero-copy h1,
+      .contact-form h2 { font-size: 24px; }
+      .contact-quick-links { flex-direction: column; }
+      .contact-pill { width: 100%; justify-content: center; }
       .student-course-section { grid-template-columns: 1fr; gap: 0.7rem; }
       .student-section-body h2 { font-size: 19px; }
       .student-resource-row { align-items: flex-start; flex-wrap: wrap; font-size: 15px; }

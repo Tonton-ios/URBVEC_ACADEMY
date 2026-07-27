@@ -138,6 +138,7 @@ function enrollCourse() {
 }
 
 const unavailableCourseStatuses = ['Indisponible', 'Brouillon', 'Archivé'];
+const CONTACT_PAGE = 'contact.html';
 
 function isCourseAvailable(course) {
   return course && !unavailableCourseStatuses.includes(course.status);
@@ -161,18 +162,70 @@ function getCourseTotalFee(course) {
 
 function renderRegistrationCourseOptions(courseSelect) {
   if (!courseSelect) return;
+  const courses = getCourses();
+  const placeholder = courseSelect.querySelector('option[value=""]');
 
-  Array.from(courseSelect.options).forEach(option => {
-    if (!option.value) return;
+  courseSelect.innerHTML = '';
+  if (placeholder) courseSelect.appendChild(placeholder);
 
-    const status = option.dataset.status || 'Publié';
-    const isUnavailable = unavailableCourseStatuses.includes(status);
-    option.disabled = isUnavailable;
-
-    if (isUnavailable && !option.textContent.includes('(Indisponible)')) {
-      option.textContent = `${option.textContent} (Indisponible)`;
-    }
+  courses.forEach(course => {
+    const option = document.createElement('option');
+    option.value = course.id;
+    option.dataset.price = String(getCourseRegistrationFee(course));
+    option.dataset.participationFee = String(getCourseParticipationFee(course));
+    option.dataset.status = course.status || 'Publié';
+    option.disabled = !isCourseAvailable(course);
+    option.textContent = `${course.title}${option.disabled ? ' (Indisponible)' : ''}`;
+    courseSelect.appendChild(option);
   });
+}
+
+function getLocalRegistrationRecords() {
+  try {
+    const saved = localStorage.getItem('urbvec_registration_records');
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+async function getRegistrationRecords() {
+  const localRecords = getLocalRegistrationRecords();
+  try {
+    const { data, error } = await supabase
+      .from('registrations')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error || !Array.isArray(data)) return localRecords;
+    return data;
+  } catch {
+    return localRecords;
+  }
+}
+
+function saveLocalRegistrationRecord(record) {
+  const records = getLocalRegistrationRecords();
+  const next = [record, ...records].slice(0, 100);
+  localStorage.setItem('urbvec_registration_records', JSON.stringify(next));
+  return next;
+}
+
+function getLocalAssignmentRecords() {
+  try {
+    const saved = localStorage.getItem('urbvec_assignment_records');
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalAssignmentRecord(record) {
+  const records = getLocalAssignmentRecords();
+  const next = [record, ...records].slice(0, 100);
+  localStorage.setItem('urbvec_assignment_records', JSON.stringify(next));
+  return next;
 }
 
 async function saveRegistrationToDatabase(registration) {
@@ -191,6 +244,110 @@ async function saveRegistrationToDatabase(registration) {
     console.warn("Supabase indisponible pour l'inscription:", error);
     return false;
   }
+}
+
+async function saveStudentToDatabase(student) {
+  try {
+    const { data, error } = await supabase.rpc('admin_upsert_student_profile', {
+      p_email: student.email || '',
+      p_full_name: student.fullName || '',
+      p_phone: student.phone || '',
+      p_course_ids: student.assignedCourseIds || []
+    });
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.warn('Impossible de sauvegarder l\'étudiant dans Supabase:', error);
+    return null;
+  }
+}
+
+async function removeStudentFromDatabase(studentId) {
+  try {
+    const { error } = await supabase.rpc('admin_remove_student', {
+      p_student_id: studentId
+    });
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.warn('Impossible de supprimer l\'étudiant depuis Supabase:', error);
+    return false;
+  }
+}
+
+function renderAdminOverviewStats() {
+  const setText = (id, value) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = String(value);
+  };
+
+  const localStudents = new Set([
+    ...getStudentAccounts().map(account => account.email?.toLowerCase()).filter(Boolean),
+    ...getLocalRegistrationRecords().map(record => record.email?.toLowerCase()).filter(Boolean)
+  ]).size;
+  const localCourses = getCourses().length;
+  const localResources = getCourses().reduce((total, course) => total + getCourseContent(course.id).reduce((sum, section) => sum + section.items.length, 0), 0);
+  const localPayments = getLocalRegistrationRecords().length;
+
+  setText('adminStatStudents', localStudents);
+  setText('adminStatCourses', localCourses);
+  setText('adminStatResources', localResources);
+  setText('adminStatPayments', localPayments);
+
+  supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
+    if (typeof count === 'number') setText('adminStatStudents', count);
+  }).catch(() => {});
+  supabase.from('courses').select('id', { count: 'exact', head: true }).then(({ count }) => {
+    if (typeof count === 'number') setText('adminStatCourses', count);
+  }).catch(() => {});
+  supabase.from('registrations').select('id', { count: 'exact', head: true }).then(({ count }) => {
+    if (typeof count === 'number') setText('adminStatPayments', count);
+  }).catch(() => {});
+}
+
+async function renderAdminPaymentsTable() {
+  const tbody = document.getElementById('adminPaymentsTableBody');
+  if (!tbody) return;
+  const records = await getRegistrationRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="4">Aucun paiement en attente.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(record => `
+    <tr>
+      <td>${escapeHtml(record.full_name || '')}</td>
+      <td>${escapeHtml(record.course_title || '')}</td>
+      <td>${escapeHtml(record.transaction_id || '')}</td>
+      <td>${escapeHtml(record.status || 'En attente')}</td>
+    </tr>
+  `).join('');
+}
+
+function populateAssignmentCourseSelect() {
+  const select = document.getElementById('assignmentCourse');
+  if (!select) return;
+  select.innerHTML = getCourses().map(course => `
+    <option value="${course.id}" ${isCourseAvailable(course) ? '' : 'disabled'}>${escapeHtml(course.title)}${isCourseAvailable(course) ? '' : ' (indisponible)'}</option>
+  `).join('');
+}
+
+function renderAdminAssignmentsTable() {
+  const tbody = document.querySelector('#admin-tab-deadlines .admin-table tbody');
+  if (!tbody) return;
+  const records = getLocalAssignmentRecords();
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="5">Aucune remise pour le moment.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(record => `
+    <tr>
+      <td>${escapeHtml(record.student || '')}</td>
+      <td>${escapeHtml(record.title || '')}</td>
+      <td>${record.submitted_at ? escapeHtml(new Date(record.submitted_at).toLocaleString('fr-FR')) : ''}</td>
+      <td>En attente</td>
+      <td>---</td>
+    </tr>
+  `).join('');
 }
 
 function getTrainerWhatsappUrl(registration) {
@@ -1034,7 +1191,7 @@ function getCourseById(courseId) {
   return getCourses().find(course => course.id === courseId) || null;
 }
 
-function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
+async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
   const dashboard = document.getElementById('paidStudentDashboard');
   const courseList = document.getElementById('paidCoursesList');
   const courseCount = document.getElementById('paidCourseCount');
@@ -1054,7 +1211,8 @@ function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()) {
 
   if (!dashboard || !courseList || !courseCount || !courseTitle || !courseDescription || !courseMeta || !outline || !assignmentsPanel || !quizPanel) return;
 
-  const profile = getStudentProfile();
+  const dbProfile = await getDatabaseStudentSnapshot().catch(() => null);
+  const profile = dbProfile || getStudentProfile();
   const cards = document.getElementById('studentPaidCourseCards');
   const fullName = profile.fullName || profile.full_name || 'Étudiant URBVEC';
   const firstName = fullName.split(' ').filter(Boolean)[0] || 'étudiant';
@@ -1199,22 +1357,69 @@ async function syncStudentProfileFromSession() {
 
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('full_name,email,phone,assigned_course_id,assigned_course_title')
+      .select('full_name,email,phone,is_admin')
       .eq('id', session.user.id)
       .single();
 
     if (profileData) {
+      const { data: assignedRows } = await supabase
+        .from('student_courses')
+        .select('course_id, courses(title)')
+        .eq('student_id', session.user.id);
+
+      const assignedCourseIds = (assignedRows || []).map(row => row.course_id).filter(Boolean);
+      const assignedCourseTitles = (assignedRows || [])
+        .map(row => row.courses?.title || row.course_title || '')
+        .filter(Boolean);
+
       saveStudentProfile({
         fullName: profileData.full_name || session.user.user_metadata?.full_name || '',
         email: profileData.email || session.user.email,
         phone: profileData.phone || '',
-        assignedCourseId: profileData.assigned_course_id || '',
-        assignedCourseTitle: profileData.assigned_course_title || ''
+        assignedCourseId: assignedCourseIds[0] || '',
+        assignedCourseIds,
+        assignedCourseTitle: assignedCourseTitles[0] || '',
+        assignedCourseTitles
       });
     }
   } catch (error) {
     console.warn('Impossible de synchroniser le profil étudiant.', error);
   }
+}
+
+async function getDatabaseStudentSnapshot() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user?.email) return null;
+
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('id,full_name,email,phone,is_admin')
+    .eq('id', session.user.id)
+    .single();
+
+  if (!profileData) return null;
+
+  const { data: assignedRows } = await supabase
+    .from('student_courses')
+    .select('course_id,courses(title)')
+    .eq('student_id', session.user.id);
+
+  const assignedCourseIds = (assignedRows || []).map(row => row.course_id).filter(Boolean);
+  const assignedCourseTitles = (assignedRows || [])
+    .map(row => row.courses?.title || row.course_title || '')
+    .filter(Boolean);
+
+  return {
+    id: profileData.id,
+    fullName: profileData.full_name || session.user.user_metadata?.full_name || '',
+    email: profileData.email || session.user.email,
+    phone: profileData.phone || '',
+    isAdmin: Boolean(profileData.is_admin),
+    assignedCourseId: assignedCourseIds[0] || '',
+    assignedCourseIds,
+    assignedCourseTitle: assignedCourseTitles[0] || '',
+    assignedCourseTitles
+  };
 }
 
 function renderAdminCourseBuilder() {
@@ -1298,28 +1503,61 @@ function renderAdminStudentList() {
   if (!tbody) return;
 
   const accounts = getStudentAccounts();
-  if (!accounts.length) {
-    tbody.innerHTML = '<tr><td colspan="5">Aucun étudiant chargé pour le moment.</td></tr>';
-    return;
-  }
+  const registrationsPromise = getRegistrationRecords();
+  const combined = new Map();
 
-  tbody.innerHTML = accounts.map(account => {
-    const courseTitles = Array.isArray(account.assignedCourseTitles)
-      ? account.assignedCourseTitles
-      : account.assignedCourseTitle
-        ? [account.assignedCourseTitle]
-        : [];
-    const courseLabel = courseTitles.length ? courseTitles.join(', ') : 'Non attribué';
-    return `
-      <tr>
-        <td>${escapeHtml(account.fullName || '')}</td>
-        <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
-        <td>${escapeHtml(courseLabel)}</td>
-        <td>Actif</td>
-        <td><button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button></td>
-      </tr>
-    `;
-  }).join('');
+  accounts.forEach(account => {
+    combined.set((account.email || '').toLowerCase(), {
+      fullName: account.fullName || '',
+      email: account.email || '',
+      phone: account.phone || '',
+      assignedCourseTitles: account.assignedCourseTitles || [],
+      source: 'Compte'
+    });
+  });
+
+  registrationsPromise.then(registrations => {
+    registrations.forEach(record => {
+      const key = (record.email || '').toLowerCase();
+      if (!combined.has(key)) {
+        combined.set(key, {
+          fullName: record.full_name || '',
+          email: record.email || '',
+          phone: record.phone || '',
+          assignedCourseTitles: [record.course_title].filter(Boolean),
+          source: 'Inscription',
+          studentId: record.student_id || ''
+        });
+      }
+    });
+
+    const list = Array.from(combined.values());
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="5">Aucun étudiant chargé pour le moment.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(account => {
+      const courseTitles = Array.isArray(account.assignedCourseTitles)
+        ? account.assignedCourseTitles
+        : account.assignedCourseTitle
+          ? [account.assignedCourseTitle]
+          : [];
+      const courseLabel = courseTitles.length ? courseTitles.join(', ') : 'Non attribué';
+      return `
+        <tr>
+          <td>${escapeHtml(account.fullName || '')}</td>
+          <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
+          <td>${escapeHtml(courseLabel)}</td>
+          <td>${escapeHtml(account.source || 'Actif')}</td>
+          <td>
+            <button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button>
+            <button type="button" class="admin-mini-btn" data-delete-student="${escapeHtml(account.studentId || account.email || '')}">Supprimer</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  });
 }
 
 function fillAdminCourseForm(course) {
@@ -1646,6 +1884,30 @@ function initModalButtons() {
   });
 }
 
+function initContactForm() {
+  const form = document.querySelector('.contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = document.getElementById('contactName')?.value.trim() || 'Visiteur';
+    const email = document.getElementById('contactEmail')?.value.trim() || '';
+    const subject = document.getElementById('contactSubject')?.value.trim() || 'Contact URBVEC Academy';
+    const message = document.getElementById('contactMessage')?.value.trim() || '';
+    const whatsappMessage = [
+      'Bonjour URBVEC Academy,',
+      '',
+      `Nom: ${name}`,
+      email ? `Email: ${email}` : null,
+      `Sujet: ${subject}`,
+      '',
+      message
+    ].filter(Boolean).join('\n');
+
+    window.open(`https://wa.me/50938449148?text=${encodeURIComponent(whatsappMessage)}`, '_blank', 'noopener,noreferrer');
+  });
+}
+
 function initAdminTabs() {
   const tabButtons = document.querySelectorAll('[data-admin-tab]');
   const tabs = document.querySelectorAll('.admin-tab');
@@ -1919,6 +2181,21 @@ async function initPaidStudentDashboard() {
     toggleMenu(false);
   });
 
+  paidDashboard.addEventListener('click', (event) => {
+    const submitAssignmentButton = event.target.closest('#paidCourseAssignmentsPanel .student-task-card .btn-primary');
+    if (!submitAssignmentButton) return;
+    const card = submitAssignmentButton.closest('.student-task-card');
+    const title = card?.querySelector('h3')?.textContent || 'Devoir';
+    saveLocalAssignmentRecord({
+      title,
+      student: getStudentProfile().fullName || getStudentProfile().email || 'Étudiant',
+      submitted_at: new Date().toISOString()
+    });
+    renderAdminOverviewStats();
+    renderAdminPaymentsTable();
+    showRegistrationNotice('Devoir envoyé. L’admin le verra dans son tableau de bord.', 'success');
+  });
+
   viewButtons.forEach(button => {
     button.addEventListener('click', () => {
       const nextView = button.dataset.studentView === 'profile' ? 'profile' : button.dataset.studentView === 'courses' ? 'courses' : 'overview';
@@ -1977,6 +2254,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCourseFilters();
   initClickableCards();
   initModalButtons();
+  initContactForm();
   initRegistrationForm();
   initAiCourseQuiz();
   renderStudentCourseOutline();
@@ -1988,6 +2266,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminCourses();
     initAdminCourseBuilder();
     renderAdminStudentList();
+    renderAdminOverviewStats();
+    renderAdminPaymentsTable();
+    renderAdminAssignmentsTable();
+    populateAssignmentCourseSelect();
   }
   initOnlineLoginForm();
   initAdminStudentForm();

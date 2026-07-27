@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact - URBVEC ACADEMY 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="img/urbvec_academy.png" alt="URBVEC Academy Logo" class="logo-img">
+    <div class="logo-text">URBVEC <span>ACADEMY</span></div>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Accueil</a>
+    <a href="cours.html">Cours</a>
+    <a href="cours-online.html">Cours online</a>
+    <a href="contact.html" class="nav-cta">Contact</a>
+  </div>
+</nav>
+
+<main class="contact-page">
+  <section class="contact-hero">
+    <div class="contact-hero-copy">
+      <div class="section-eyebrow">Parlons ensemble</div>
+      <h1>Contactez URBVEC Academy</h1>
+      <p>Une question sur un cours, un paiement ou l’accès étudiant ? Notre équipe vous répond rapidement par WhatsApp, email ou via le formulaire ci-dessous.</p>
+      <div class="contact-quick-links">
+        <a class="contact-pill" href="https://wa.me/50938449148" target="_blank" rel="noopener noreferrer"><i class="ti ti-brand-whatsapp"></i> WhatsApp</a>
+        <a class="contact-pill" href="mailto:info@urbvec.com"><i class="ti ti-mail"></i> info@urbvec.com</a>
+        <a class="contact-pill" href="tel:+50938449148"><i class="ti ti-phone"></i> +509 3844-9148</a>
+      </div>
+    </div>
+    <div class="contact-hero-card">
+      <h2>Nos horaires</h2>
+      <p>Du lundi au samedi, de 8h00 à 6h00 PM</p>
+      <div class="contact-detail-list">
+        <div><strong>Support paiement</strong><span>MonCash / NatCash</span></div>
+        <div><strong>Support étudiant</strong><span>Dashboard, cours, devoirs</span></div>
+        <div><strong>Adresse email</strong><span>info@urbvec.com</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-grid">
+    <form class="contact-form">
+      <div class="section-eyebrow">Écrivez-nous</div>
+      <h2>Envoyer un message</h2>
+      <div class="form-group"><label for="contactName">Nom complet</label><input id="contactName" type="text" placeholder="Votre nom"></div>
+      <div class="form-group"><label for="contactEmail">Email</label><input id="contactEmail" type="email" placeholder="votre@email.com"></div>
+      <div class="form-group"><label for="contactSubject">Sujet</label><input id="contactSubject" type="text" placeholder="Paiement, inscription, cours..."></div>
+      <div class="form-group"><label for="contactMessage">Message</label><textarea id="contactMessage" rows="6" placeholder="Décrivez votre besoin"></textarea></div>
+      <button type="submit" class="btn-primary">Envoyer le message</button>
+    </form>
+
+    <aside class="contact-side">
+      <div class="contact-side-card">
+        <h3>Contact rapide</h3>
+        <p>Si vous voulez une réponse immédiate, cliquez sur WhatsApp.</p>
+        <a class="btn-primary" href="https://wa.me/50938449148" target="_blank" rel="noopener noreferrer"><i class="ti ti-brand-whatsapp"></i> Ouvrir WhatsApp</a>
+      </div>
+      <div class="contact-side-card">
+        <h3>FAQ rapide</h3>
+        <ul>
+          <li>Accès cours: après validation de paiement.</li>
+          <li>Devoirs: disponibles dans le dashboard étudiant.</li>
+          <li>Paiements: MonCash ou NatCash.</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module" src="script.js"></script>
+</body>
+</html>

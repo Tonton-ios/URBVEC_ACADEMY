@@ -39,11 +39,11 @@
   </header>
 
   <section class="admin-tab active" id="admin-tab-overview">
-    <div class="admin-stats-grid">
-      <div class="admin-stat-card"><i class="ti ti-users"></i><span>Étudiants</span><strong>0</strong></div>
-      <div class="admin-stat-card"><i class="ti ti-book-2"></i><span>Cours</span><strong>1</strong></div>
-      <div class="admin-stat-card"><i class="ti ti-file-stack"></i><span>Ressources</span><strong>21</strong></div>
-      <div class="admin-stat-card"><i class="ti ti-cash"></i><span>Paiements</span><strong>0</strong></div>
+      <div class="admin-stats-grid">
+      <div class="admin-stat-card"><i class="ti ti-users"></i><span>Étudiants</span><strong id="adminStatStudents">0</strong></div>
+      <div class="admin-stat-card"><i class="ti ti-book-2"></i><span>Cours</span><strong id="adminStatCourses">0</strong></div>
+      <div class="admin-stat-card"><i class="ti ti-file-stack"></i><span>Ressources</span><strong id="adminStatResources">0</strong></div>
+      <div class="admin-stat-card"><i class="ti ti-cash"></i><span>Paiements</span><strong id="adminStatPayments">0</strong></div>
     </div>
 
     <div class="admin-grid-two">
@@ -261,7 +261,7 @@
   <section class="admin-tab" id="admin-tab-students">
     <div class="admin-panel">
       <div class="admin-panel-head"><h2>Étudiants</h2><span>Inscriptions et accès</span></div>
-      <form class="admin-form admin-student-form" id="adminStudentForm">
+        <form class="admin-form admin-student-form" id="adminStudentForm">
         <div class="admin-form-grid">
           <div class="form-group">
             <label for="studentFullNameAdmin"><i class="ti ti-user"></i> Nom complet</label>
@@ -316,7 +316,7 @@
   <section class="admin-tab" id="admin-tab-payments">
     <div class="admin-panel">
       <div class="admin-panel-head"><h2>Paiements MonCash / NatCash</h2><span>Preuves à valider</span></div>
-      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Étudiant</th><th>Cours</th><th>Transaction</th><th>Statut</th></tr></thead><tbody><tr><td colspan="4">Aucun paiement en attente.</td></tr></tbody></table></div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Étudiant</th><th>Cours</th><th>Transaction</th><th>Statut</th></tr></thead><tbody id="adminPaymentsTableBody"><tr><td colspan="4">Aucun paiement en attente.</td></tr></tbody></table></div>
     </div>
   </section>
 

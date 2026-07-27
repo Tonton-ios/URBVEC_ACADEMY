@@ -13,8 +13,31 @@ function createFallbackClient() {
               message: 'Supabase non chargé'
             }
           });
+        },
+        select() {
+          return Promise.resolve({
+            data: null,
+            count: 0,
+            error: {
+              message: 'Supabase non chargé'
+            }
+          });
         }
       };
+    },
+    auth: {
+      getSession() {
+        return Promise.resolve({ data: { session: null }, error: null });
+      },
+      signInWithPassword() {
+        return Promise.resolve({ data: null, error: { message: 'Supabase non chargé' } });
+      },
+      signUp() {
+        return Promise.resolve({ data: null, error: { message: 'Supabase non chargé' } });
+      },
+      signOut() {
+        return Promise.resolve({ error: null });
+      }
     }
   };
 }

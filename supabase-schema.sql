@@ -490,6 +490,89 @@ begin
 end;
 $$;
 
+create or replace function public.admin_remove_student(
+  p_student_id uuid
+)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Not allowed';
+  end if;
+
+  delete from public.student_courses
+  where student_id = p_student_id;
+
+  delete from public.quiz_answers
+  where attempt_id in (
+    select id from public.quiz_attempts where student_id = p_student_id
+  );
+
+  delete from public.quiz_attempts
+  where student_id = p_student_id;
+
+  delete from public.assignment_submissions
+  where student_id = p_student_id;
+
+  delete from public.profiles
+  where id = p_student_id;
+end;
+$$;
+
+create or replace function public.admin_upsert_student_profile(
+  p_email text,
+  p_full_name text,
+  p_phone text,
+  p_course_ids uuid[]
+)
+returns uuid
+language plpgsql
+security definer
+as $$
+declare
+  v_profile_id uuid;
+  v_course_id uuid;
+begin
+  if not public.is_admin() then
+    raise exception 'Not allowed';
+  end if;
+
+  select id into v_profile_id
+  from public.profiles
+  where lower(email) = lower(p_email)
+  limit 1;
+
+  if v_profile_id is null then
+    v_profile_id := gen_random_uuid();
+    insert into public.profiles (id, email, full_name, phone, is_admin)
+    values (v_profile_id, p_email, p_full_name, coalesce(p_phone, ''), false);
+  else
+    update public.profiles
+    set full_name = p_full_name,
+        phone = coalesce(p_phone, phone),
+        updated_at = now()
+    where id = v_profile_id;
+  end if;
+
+  delete from public.student_courses
+  where student_id = v_profile_id;
+
+  foreach v_course_id in array coalesce(p_course_ids, '{}') loop
+    insert into public.student_courses (student_id, course_id, granted_by, status)
+    values (v_profile_id, v_course_id, auth.uid(), 'Actif')
+    on conflict (student_id, course_id)
+    do update set
+      granted_by = excluded.granted_by,
+      status = excluded.status,
+      updated_at = now();
+  end loop;
+
+  return v_profile_id;
+end;
+$$;
+
 create or replace function public.submit_quiz_attempt(
   p_quiz_id uuid,
   p_answers jsonb
