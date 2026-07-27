@@ -281,10 +281,7 @@ function renderAdminOverviewStats() {
     if (node) node.textContent = String(value);
   };
 
-  const localStudents = new Set([
-    ...getStudentAccounts().map(account => account.email?.toLowerCase()).filter(Boolean),
-    ...getLocalRegistrationRecords().map(record => record.email?.toLowerCase()).filter(Boolean)
-  ]).size;
+  const localStudents = new Set(getLocalRegistrationRecords().map(record => record.email?.toLowerCase()).filter(Boolean)).size;
   const localCourses = getCourses().length;
   const localResources = getCourses().reduce((total, course) => total + getCourseContent(course.id).reduce((sum, section) => sum + section.items.length, 0), 0);
   const localPayments = getLocalRegistrationRecords().length;
@@ -563,7 +560,6 @@ function initRegistrationForm() {
     }
 
     setActiveCourseId(selectedCourseId);
-    saveStudentProfile({ fullName, email, phone });
 
     if (amountDueNow === 0) {
       playLogoTransition('cours-gratuit.html');
@@ -591,7 +587,6 @@ function initRegistrationForm() {
     };
 
     const savePromise = saveRegistrationToDatabase(registration);
-    savePurchasedCourseId(selectedCourseId);
     const whatsappUrl = getTrainerWhatsappUrl(registration);
     await savePromise;
     showRegistrationNotice('Merci, patientez. Bienvenue à URBVEC Academy, votre inscription est en cours de traitement.', 'success');
@@ -774,10 +769,8 @@ function showAiCourseResult(score) {
 
 const COURSES_KEY = 'urbvec_courses';
 const ACTIVE_COURSE_KEY = 'urbvec_active_course';
-const PURCHASED_COURSES_KEY = 'urbvec_purchased_courses';
 const STUDENT_PROFILE_KEY = 'urbvec_student_profile';
 const STUDENT_ACTIVITY_KEY = 'urbvec_student_activity';
-const STUDENT_ACCOUNTS_KEY = 'urbvec_student_accounts';
 const STUDENT_LIBRARY_KEY = 'urbvec_student_library';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
 
@@ -899,29 +892,6 @@ function setActiveCourseId(courseId) {
   localStorage.setItem(ACTIVE_COURSE_KEY, courseId);
 }
 
-function getPurchasedCourseIds() {
-  try {
-    const saved = localStorage.getItem(PURCHASED_COURSES_KEY);
-    const parsed = saved ? JSON.parse(saved) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.warn('Impossible de lire les cours achetés.', error);
-    return [];
-  }
-}
-
-function savePurchasedCourseId(courseId) {
-  if (!courseId || courseId === 'free-ai') return;
-  const courses = getCourses();
-  const course = courses.find(item => item.id === courseId);
-  if (!course || getCourseTotalFee(course) <= 0) return;
-
-  const purchasedIds = getPurchasedCourseIds();
-  if (!purchasedIds.includes(courseId)) {
-    localStorage.setItem(PURCHASED_COURSES_KEY, JSON.stringify([...purchasedIds, courseId]));
-  }
-}
-
 function getStudentProfile() {
   try {
     const saved = localStorage.getItem(STUDENT_PROFILE_KEY);
@@ -936,6 +906,12 @@ function saveStudentProfile(profile) {
   const nextProfile = { ...getStudentProfile(), ...profile };
   localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(nextProfile));
   return nextProfile;
+}
+
+function clearStudentLocalState() {
+  localStorage.removeItem(STUDENT_PROFILE_KEY);
+  localStorage.removeItem(STUDENT_ACTIVITY_KEY);
+  localStorage.removeItem(STUDENT_LIBRARY_KEY);
 }
 
 function getAssignedCourseIds(profile = getStudentProfile()) {
@@ -958,41 +934,6 @@ function getStudentLibrary() {
   } catch {
     return {};
   }
-}
-
-function getStudentAccounts() {
-  try {
-    const saved = localStorage.getItem(STUDENT_ACCOUNTS_KEY);
-    const parsed = saved ? JSON.parse(saved) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.warn('Impossible de lire les comptes étudiants.', error);
-    return [];
-  }
-}
-
-function saveStudentAccount(account) {
-  const accounts = getStudentAccounts();
-  const sanitized = {
-    fullName: account.fullName || '',
-    email: account.email || '',
-    phone: account.phone || '',
-    password: account.password || '',
-    assignedCourseIds: Array.isArray(account.assignedCourseIds) ? account.assignedCourseIds.filter(Boolean) : (account.assignedCourseId ? [account.assignedCourseId] : []),
-    assignedCourseTitles: Array.isArray(account.assignedCourseTitles) ? account.assignedCourseTitles.filter(Boolean) : (account.assignedCourseTitle ? [account.assignedCourseTitle] : [])
-  };
-  const index = accounts.findIndex(item => item.email.toLowerCase() === sanitized.email.toLowerCase());
-  if (index >= 0) {
-    accounts[index] = { ...accounts[index], ...sanitized };
-  } else {
-    accounts.push(sanitized);
-  }
-  localStorage.setItem(STUDENT_ACCOUNTS_KEY, JSON.stringify(accounts));
-  return sanitized;
-}
-
-function findStudentAccount(email, password) {
-  return getStudentAccounts().find(account => account.email.toLowerCase() === email.toLowerCase() && account.password === password) || null;
 }
 
 function getStudentActivity() {
@@ -1180,11 +1121,7 @@ function renderCourseOutlineMarkup(content) {
 }
 
 function getPurchasedCourses() {
-  const purchasedIds = getPurchasedCourseIds();
-  const courses = getCourses();
-  return purchasedIds
-    .map(courseId => courses.find(course => course.id === courseId))
-    .filter(course => course && getCourseTotalFee(course) > 0);
+  return [];
 }
 
 function getCourseById(courseId) {
@@ -1212,7 +1149,13 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
   if (!dashboard || !courseList || !courseCount || !courseTitle || !courseDescription || !courseMeta || !outline || !assignmentsPanel || !quizPanel) return;
 
   const dbProfile = await getDatabaseStudentSnapshot().catch(() => null);
-  const profile = dbProfile || getStudentProfile();
+  const profile = dbProfile || {
+    fullName: '',
+    email: '',
+    phone: '',
+    assignedCourseIds: [],
+    assignedCourseTitles: []
+  };
   const cards = document.getElementById('studentPaidCourseCards');
   const fullName = profile.fullName || profile.full_name || 'Étudiant URBVEC';
   const firstName = fullName.split(' ').filter(Boolean)[0] || 'étudiant';
@@ -1230,7 +1173,7 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
   if (studentEmail) studentEmail.textContent = email;
   if (studentPhone) studentPhone.textContent = phone;
   const profileAssignedCourses = document.getElementById('profileAssignedCourses');
-  const purchasedCourses = getPurchasedCourses();
+  const purchasedCourses = [];
   const assignedCourses = assignedCourseIds
     .map(courseId => getCourseById(courseId))
     .filter(Boolean);
@@ -1381,6 +1324,7 @@ async function syncStudentProfileFromSession() {
         assignedCourseTitle: assignedCourseTitles[0] || '',
         assignedCourseTitles
       });
+      return;
     }
   } catch (error) {
     console.warn('Impossible de synchroniser le profil étudiant.', error);
@@ -1501,62 +1445,74 @@ function populateAdminStudentCourseSelect() {
 function renderAdminStudentList() {
   const tbody = document.getElementById('adminStudentsTableBody');
   if (!tbody) return;
+  getRegistrationRecords().then(async registrations => {
+    const combined = new Map();
 
-  const accounts = getStudentAccounts();
-  const registrationsPromise = getRegistrationRecords();
-  const combined = new Map();
-
-  accounts.forEach(account => {
-    combined.set((account.email || '').toLowerCase(), {
-      fullName: account.fullName || '',
-      email: account.email || '',
-      phone: account.phone || '',
-      assignedCourseTitles: account.assignedCourseTitles || [],
-      source: 'Compte',
-      studentId: account.profileId || account.id || ''
-    });
-  });
-
-  registrationsPromise.then(registrations => {
     registrations.forEach(record => {
-      const key = (record.email || '').toLowerCase();
+      combined.set((record.email || '').toLowerCase(), {
+        fullName: record.full_name || '',
+        email: record.email || '',
+        phone: record.phone || '',
+        assignedCourseTitles: [record.course_title].filter(Boolean),
+        source: 'Inscription',
+        studentId: record.student_id || ''
+      });
+    });
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id,email,full_name,phone');
+
+    (profiles || []).forEach(profile => {
+      const key = (profile.email || '').toLowerCase();
       if (!combined.has(key)) {
         combined.set(key, {
-          fullName: record.full_name || '',
-          email: record.email || '',
-          phone: record.phone || '',
-          assignedCourseTitles: [record.course_title].filter(Boolean),
-          source: 'Inscription',
-          studentId: record.student_id || ''
+          fullName: profile.full_name || '',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          assignedCourseTitles: [],
+          source: 'Compte',
+          studentId: profile.id || ''
         });
       }
     });
 
-    const list = Array.from(combined.values());
+    const { data: studentCourses } = await supabase
+      .from('student_courses')
+      .select('student_id, course_id, courses(title)');
+
+    const courseMap = new Map();
+    (studentCourses || []).forEach(row => {
+      const key = row.student_id;
+      if (!courseMap.has(key)) courseMap.set(key, []);
+      courseMap.get(key).push(row.courses?.title || '');
+    });
+
+    const list = Array.from(combined.values()).map(account => ({
+      ...account,
+      assignedCourseTitles: [...(account.assignedCourseTitles || []), ...(courseMap.get(account.studentId) || [])].filter(Boolean)
+    }));
+
     if (!list.length) {
       tbody.innerHTML = '<tr><td colspan="5">Aucun étudiant chargé pour le moment.</td></tr>';
       return;
     }
 
     tbody.innerHTML = list.map(account => {
-      const courseTitles = Array.isArray(account.assignedCourseTitles)
-        ? account.assignedCourseTitles
-        : account.assignedCourseTitle
-          ? [account.assignedCourseTitle]
-          : [];
+      const courseTitles = Array.isArray(account.assignedCourseTitles) ? account.assignedCourseTitles : [];
       const courseLabel = courseTitles.length ? courseTitles.join(', ') : 'Non attribué';
       return `
         <tr>
-        <td>${escapeHtml(account.fullName || '')}</td>
-        <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
-        <td>${escapeHtml(courseLabel)}</td>
-        <td>${escapeHtml(account.source || 'Actif')}</td>
-        <td>
-          <button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button>
-          <button type="button" class="admin-mini-btn" data-delete-student="${escapeHtml(account.studentId || account.email || '')}">Supprimer</button>
-        </td>
-      </tr>
-    `;
+          <td>${escapeHtml(account.fullName || '')}</td>
+          <td>${escapeHtml(account.email || '')}<br><small>${escapeHtml(account.phone || '')}</small></td>
+          <td>${escapeHtml(courseLabel)}</td>
+          <td>${escapeHtml(account.source || 'Actif')}</td>
+          <td>
+            <button type="button" class="admin-mini-btn" data-assign-course="${escapeHtml(account.email || '')}">Attribuer</button>
+            <button type="button" class="admin-mini-btn" data-delete-student="${escapeHtml(account.studentId || account.email || '')}">Supprimer</button>
+          </td>
+        </tr>
+      `;
     }).join('');
   });
 }
@@ -1852,17 +1808,6 @@ function initAdminStudentForm() {
         assignedCourseIds: courseIds,
         assignedCourseTitles: courseTitles
       });
-
-      saveStudentAccount({
-        fullName,
-        email,
-        phone,
-        password,
-        assignedCourseIds: courseIds,
-        assignedCourseTitles: courseTitles,
-        profileId: studentProfileId || ''
-      });
-
       saveStudentProfile({
         fullName,
         email,
@@ -1895,27 +1840,27 @@ function initAdminStudentActions() {
 
     if (assignButton) {
       const email = assignButton.dataset.assignCourse;
-      const student = getStudentAccounts().find(account => account.email?.toLowerCase() === email.toLowerCase());
       const registrations = await getRegistrationRecords();
       const registration = registrations.find(record => record.email?.toLowerCase() === email.toLowerCase());
-      const profile = getStudentProfile();
-      const courseIds = profile.assignedCourseIds || profile.assigned_course_ids || [];
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+      const currentAssignments = await supabase
+        .from('student_courses')
+        .select('course_id')
+        .eq('student_id', profileRow?.id || '');
+      const courseIds = (currentAssignments.data || []).map(row => row.course_id).filter(Boolean);
       const selectedCourses = prompt('IDs des cours à attribuer, séparés par des virgules', courseIds.join(', '));
       if (!selectedCourses) return;
       const nextCourseIds = selectedCourses.split(',').map(item => item.trim()).filter(Boolean);
       if (!nextCourseIds.length) return;
 
       await saveStudentToDatabase({
-        fullName: student?.fullName || registration?.full_name || '',
+        fullName: registration?.full_name || '',
         email,
-        phone: student?.phone || registration?.phone || '',
-        assignedCourseIds: nextCourseIds
-      });
-
-      saveStudentProfile({
-        fullName: student?.fullName || registration?.full_name || '',
-        email,
-        phone: student?.phone || registration?.phone || '',
+        phone: registration?.phone || '',
         assignedCourseIds: nextCourseIds
       });
 
@@ -2122,21 +2067,6 @@ async function initOnlineLoginForm() {
       return;
     }
 
-    const localAccount = findStudentAccount(email, password);
-    if (localAccount) {
-      saveStudentProfile({
-        fullName: localAccount.fullName,
-        email: localAccount.email,
-        phone: localAccount.phone,
-        assignedCourseId: localAccount.assignedCourseId,
-        assignedCourseTitle: localAccount.assignedCourseTitle
-      });
-      playLogoTransition('dashboard-etudiant.html');
-      submitButton.disabled = false;
-      submitButton.innerHTML = '<i class="ti ti-arrow-right"></i> Continuer';
-      return;
-    }
-
     submitButton.disabled = true; // Disable button to prevent multiple submissions
     submitButton.innerHTML = '<i class="ti ti-loader animate-spin"></i> Connexion en cours...'; // Show loading state
 
@@ -2166,11 +2096,11 @@ async function initOnlineLoginForm() {
           return;
         }
 
-        saveStudentProfile({
-          fullName: profileData?.full_name || data.user.user_metadata?.full_name || '',
-          email,
-          phone: profileData?.phone || data.user?.user_metadata?.phone || ''
-        });
+        const sessionProfile = await getDatabaseStudentSnapshot();
+        if (sessionProfile) {
+          clearStudentLocalState();
+          saveStudentProfile(sessionProfile);
+        }
 
         if (profileData && profileData.is_admin) {
           playLogoTransition('admin.html'); // Admin user
@@ -2198,9 +2128,7 @@ async function initOnlineLoginForm() {
       .single();
 
     if (profileData) {
-      saveStudentProfile({
-        email: session.user.email || '',
-      });
+      clearStudentLocalState();
     }
 
     if (profileData?.is_admin) {
