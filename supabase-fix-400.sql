@@ -3,7 +3,7 @@
 alter table public.courses
   add column if not exists participation_fee numeric not null default 0;
 
-alter table public.course_items
+alter table if exists public.course_items
   add column if not exists deadline_at timestamptz;
 
 create or replace function public.is_admin()

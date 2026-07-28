@@ -1107,7 +1107,7 @@ function getAssignedCourseIds(profile = getStudentProfile()) {
 }
 
 function getStudentLibrary() {
-  return loadStudentLibraryFromSupabase().catch(() => ({}));
+  return loadStudentLibraryFromSupabase().catch(() => ({ items: [] }));
 }
 
 function getStudentActivity() {
@@ -1142,14 +1142,14 @@ async function syncStudentProfileToSupabase(profile) {
 
 async function loadStudentActivityFromSupabase() {
   const studentId = await getLoggedInStudentId();
-  if (!studentId) return getStudentActivity();
+  if (!studentId) return [];
   const { data, error } = await supabase
     .from('student_activity_logs')
     .select('label,action,time,metadata,created_at')
     .eq('student_id', studentId)
     .order('created_at', { ascending: false })
     .limit(12);
-  if (error || !Array.isArray(data)) return getStudentActivity();
+  if (error || !Array.isArray(data)) return [];
   return data.map(row => ({
     label: row.label,
     action: row.action,
@@ -1160,13 +1160,13 @@ async function loadStudentActivityFromSupabase() {
 
 async function loadStudentLibraryFromSupabase() {
   const studentId = await getLoggedInStudentId();
-  if (!studentId) return getStudentLibrary();
+  if (!studentId) return { items: [] };
   const { data, error } = await supabase
     .from('student_library_items')
     .select('course_id,item_id,title,kind,url,file_name,note,metadata,created_at')
     .eq('student_id', studentId)
     .order('created_at', { ascending: false });
-  if (error || !Array.isArray(data)) return getStudentLibrary();
+  if (error || !Array.isArray(data)) return { items: [] };
   return {
     items: data.map(row => ({
       courseId: row.course_id,
@@ -1216,17 +1216,45 @@ async function saveCourseContent(content, courseId = getActiveCourseId()) {
       });
     });
 
-    const { error: deleteItemsError } = await supabase.from('course_items').delete().eq('course_id', courseId);
-    if (deleteItemsError) throw deleteItemsError;
-    const { error: deleteSectionsError } = await supabase.from('course_sections').delete().eq('course_id', courseId);
-    if (deleteSectionsError) throw deleteSectionsError;
+    // Ne jamais supprimer tout le cours pour une simple modification : pendant la
+    // recréation, les éléments pointaient vers des sections absentes (erreur 409/FK).
+    // Les sections sont donc écrites avant leurs contenus, puis seuls les enregistrements
+    // qui ne sont plus présents dans l'interface sont retirés.
     if (sectionsPayload.length) {
-      const { error: sectionsError } = await supabase.from('course_sections').insert(sectionsPayload);
+      const { error: sectionsError } = await supabase
+        .from('course_sections')
+        .upsert(sectionsPayload, { onConflict: 'id' });
       if (sectionsError) throw sectionsError;
     }
     if (itemsPayload.length) {
-      const { error: itemsError } = await supabase.from('course_items').insert(itemsPayload);
+      const { error: itemsError } = await supabase
+        .from('course_items')
+        .upsert(itemsPayload, { onConflict: 'id' });
       if (itemsError) throw itemsError;
+    }
+
+    const { data: currentItems, error: currentItemsError } = await supabase
+      .from('course_items')
+      .select('id')
+      .eq('course_id', courseId);
+    if (currentItemsError) throw currentItemsError;
+    const keptItemIds = new Set(itemsPayload.map(item => item.id));
+    const removedItemIds = (currentItems || []).map(item => item.id).filter(id => !keptItemIds.has(id));
+    if (removedItemIds.length) {
+      const { error } = await supabase.from('course_items').delete().in('id', removedItemIds);
+      if (error) throw error;
+    }
+
+    const { data: currentSections, error: currentSectionsError } = await supabase
+      .from('course_sections')
+      .select('id')
+      .eq('course_id', courseId);
+    if (currentSectionsError) throw currentSectionsError;
+    const keptSectionIds = new Set(sectionsPayload.map(section => section.id));
+    const removedSectionIds = (currentSections || []).map(section => section.id).filter(id => !keptSectionIds.has(id));
+    if (removedSectionIds.length) {
+      const { error } = await supabase.from('course_sections').delete().in('id', removedSectionIds);
+      if (error) throw error;
     }
     return true;
   } catch (error) {
@@ -1871,10 +1899,13 @@ async function initAdminCourses() {
         description: descriptionInput.value.trim()
       };
       courses.push(course);
-      await saveCourseContent([], course.id);
     }
 
-    await saveCourses(courses);
+    if (!await saveCourses(courses)) {
+      alert("Le cours n'a pas pu être enregistré. Vérifie les droits administrateur Supabase.");
+      return;
+    }
+    if (!courseContentCache.has(course.id)) courseContentCache.set(course.id, []);
     setActiveCourseId(course.id);
     courseForm.reset();
     renderAdminCourseList();
