@@ -275,31 +275,31 @@ async function removeStudentFromDatabase(studentId) {
   }
 }
 
-function renderAdminOverviewStats() {
+async function renderAdminOverviewStats() {
   const setText = (id, value) => {
     const node = document.getElementById(id);
     if (node) node.textContent = String(value);
   };
 
-  const localStudents = new Set(getLocalRegistrationRecords().map(record => record.email?.toLowerCase()).filter(Boolean)).size;
-  const localCourses = getCourses().length;
-  const localResources = getCourses().reduce((total, course) => total + getCourseContent(course.id).reduce((sum, section) => sum + section.items.length, 0), 0);
-  const localPayments = getLocalRegistrationRecords().length;
+  const courses = getCourses();
+  const resources = courses.reduce((total, course) => total + getCourseContent(course.id).reduce((sum, section) => sum + section.items.length, 0), 0);
 
-  setText('adminStatStudents', localStudents);
-  setText('adminStatCourses', localCourses);
-  setText('adminStatResources', localResources);
-  setText('adminStatPayments', localPayments);
+  setText('adminStatCourses', courses.length);
+  setText('adminStatResources', resources);
 
-  supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
-    if (typeof count === 'number') setText('adminStatStudents', count);
-  }).catch(() => {});
-  supabase.from('courses').select('id', { count: 'exact', head: true }).then(({ count }) => {
-    if (typeof count === 'number') setText('adminStatCourses', count);
-  }).catch(() => {});
-  supabase.from('registrations').select('id', { count: 'exact', head: true }).then(({ count }) => {
-    if (typeof count === 'number') setText('adminStatPayments', count);
-  }).catch(() => {});
+  try {
+    const [profilesResult, coursesResult, registrationsResult] = await Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('courses').select('id', { count: 'exact', head: true }),
+      supabase.from('registrations').select('id', { count: 'exact', head: true })
+    ]);
+
+    if (typeof profilesResult.count === 'number') setText('adminStatStudents', profilesResult.count);
+    if (typeof coursesResult.count === 'number') setText('adminStatCourses', coursesResult.count);
+    if (typeof registrationsResult.count === 'number') setText('adminStatPayments', registrationsResult.count);
+  } catch (error) {
+    console.warn('Impossible de charger les statistiques admin.', error);
+  }
 }
 
 async function renderAdminPaymentsTable() {
@@ -773,6 +773,9 @@ const STUDENT_PROFILE_KEY = 'urbvec_student_profile';
 const STUDENT_ACTIVITY_KEY = 'urbvec_student_activity';
 const STUDENT_LIBRARY_KEY = 'urbvec_student_library';
 const fileCourseItemTypes = ['document', 'pdf', 'ppt', 'doc', 'video'];
+let coursesCache = null;
+const courseContentCache = new Map();
+let adminRealtimeChannel = null;
 
 const defaultCourses = [
   { id: 'free-ai', title: "Maîtriser l'IA au quotidien", slug: 'cours-gratuit', price: 0, participationFee: 0, status: 'Publié', description: "Apprendre à utiliser l'intelligence artificielle dans le quotidien." },
@@ -854,28 +857,152 @@ function slugify(value) {
     .replace(/(^-|-$)/g, '') || 'cours';
 }
 
-function getCourses() {
-  try {
-    const saved = localStorage.getItem(COURSES_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map(course => ({
-          participationFee: 0,
-          status: 'Publié',
-          ...course
-        }));
-      }
-    }
-  } catch (error) {
-    console.warn('Impossible de lire la liste des cours.', error);
-  }
-
-  return defaultCourses;
+function normalizeCourse(course) {
+  return {
+    participationFee: 0,
+    status: 'Publié',
+    description: '',
+    ...course
+  };
 }
 
-function saveCourses(courses) {
-  localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
+function normalizeSection(row, items = []) {
+  return {
+    id: row.id,
+    title: row.title,
+    items
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
+      .map(item => ({
+        id: item.id,
+        title: item.title,
+        type: item.type || 'document',
+        url: item.url || '',
+        note: item.note || '',
+        fileName: item.file_name || '',
+        deadline_at: item.deadline_at || null
+      }))
+  };
+}
+
+async function loadCoursesFromSupabase() {
+  try {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('id,title,slug,price,status,description')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    if (Array.isArray(data) && data.length) {
+      coursesCache = data.map(normalizeCourse);
+      localStorage.setItem(COURSES_KEY, JSON.stringify(coursesCache));
+      return coursesCache;
+    }
+    await saveCourses(defaultCourses);
+    return coursesCache || defaultCourses.map(normalizeCourse);
+  } catch (error) {
+    console.warn('Impossible de charger les cours depuis Supabase.', error);
+  }
+
+  const saved = localStorage.getItem(COURSES_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length) {
+        coursesCache = parsed.map(normalizeCourse);
+        return coursesCache;
+      }
+    } catch (error) {
+      console.warn('Impossible de lire le cache local des cours.', error);
+    }
+  }
+
+  coursesCache = defaultCourses.map(normalizeCourse);
+  return coursesCache;
+}
+
+async function loadCourseContentFromSupabase(courseId) {
+  try {
+    const [sectionsResult, itemsResult] = await Promise.all([
+      supabase
+        .from('course_sections')
+        .select('id,course_id,title,position')
+        .eq('course_id', courseId)
+        .order('position', { ascending: true }),
+      supabase
+        .from('course_items')
+        .select('id,course_id,section_id,title,type,url,note,file_name,deadline_at,position')
+        .eq('course_id', courseId)
+        .order('position', { ascending: true })
+    ]);
+
+    const sections = sectionsResult.data || [];
+    const items = itemsResult.data || [];
+    if (!sectionsResult.error && !itemsResult.error && sections.length) {
+      const grouped = sections.map(section => normalizeSection(section, items.filter(item => item.section_id === section.id)));
+      courseContentCache.set(courseId, grouped);
+      localStorage.setItem(getCourseContentKey(courseId), JSON.stringify(grouped));
+      return grouped;
+    }
+    if (courseId === 'free-ai') {
+      await saveCourseContent(defaultCourseContent, courseId);
+      return defaultCourseContent;
+    }
+  } catch (error) {
+    console.warn('Impossible de charger le contenu depuis Supabase.', error);
+  }
+
+  const saved = localStorage.getItem(getCourseContentKey(courseId));
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        courseContentCache.set(courseId, parsed);
+        return parsed;
+      }
+    } catch (error) {
+      console.warn('Impossible de lire le cache local du contenu.', error);
+    }
+  }
+
+  const fallback = courseId === 'free-ai' ? defaultCourseContent : [];
+  courseContentCache.set(courseId, fallback);
+  return fallback;
+}
+
+async function ensureCourseDataLoaded() {
+  await loadCoursesFromSupabase();
+  const activeCourseId = getActiveCourseId();
+  await loadCourseContentFromSupabase(activeCourseId);
+  if (!courseContentCache.has('free-ai')) {
+    await loadCourseContentFromSupabase('free-ai');
+  }
+}
+
+function getCourses() {
+  return coursesCache || defaultCourses.map(normalizeCourse);
+}
+
+async function saveCourses(courses) {
+  const normalized = courses.map(normalizeCourse);
+  coursesCache = normalized;
+  localStorage.setItem(COURSES_KEY, JSON.stringify(normalized));
+
+  try {
+    const payload = normalized.map(course => ({
+      id: course.id,
+      title: course.title,
+      slug: course.slug,
+      price: Number(course.price || 0),
+      status: course.status || 'Publié',
+      description: course.description || '',
+      updated_at: new Date().toISOString()
+    }));
+    const { error } = await supabase.from('courses').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.warn('Impossible de sauvegarder les cours dans Supabase.', error);
+    return false;
+  }
 }
 
 function getActiveCourseId() {
@@ -905,6 +1032,7 @@ function getStudentProfile() {
 function saveStudentProfile(profile) {
   const nextProfile = { ...getStudentProfile(), ...profile };
   localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(nextProfile));
+  syncStudentProfileToSupabase(nextProfile).catch(() => {});
   return nextProfile;
 }
 
@@ -922,6 +1050,7 @@ function getAssignedCourseIds(profile = getStudentProfile()) {
 }
 
 function saveStudentLibrary(payload) {
+  syncStudentLibraryToSupabase(payload).catch(() => {});
   localStorage.setItem(STUDENT_LIBRARY_KEY, JSON.stringify(payload));
 }
 
@@ -949,7 +1078,116 @@ function getStudentActivity() {
 
 function saveStudentActivity(activity) {
   const activities = getStudentActivity();
-  localStorage.setItem(STUDENT_ACTIVITY_KEY, JSON.stringify([activity, ...activities].slice(0, 12)));
+  const next = [activity, ...activities].slice(0, 12);
+  syncStudentActivityToSupabase(activity).catch(() => {});
+  localStorage.setItem(STUDENT_ACTIVITY_KEY, JSON.stringify(next));
+}
+
+async function getLoggedInStudentId() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id || '';
+  } catch {
+    return '';
+  }
+}
+
+async function syncStudentProfileToSupabase(profile) {
+  const studentId = await getLoggedInStudentId();
+  if (!studentId || !profile?.email) return false;
+
+  const payload = {
+    id: studentId,
+    email: profile.email,
+    full_name: profile.fullName || profile.full_name || '',
+    phone: profile.phone || '',
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+  if (error) throw error;
+  return true;
+}
+
+async function syncStudentActivityToSupabase(activity) {
+  const studentId = await getLoggedInStudentId();
+  if (!studentId || !activity) return false;
+
+  const { error } = await supabase.from('student_activity_logs').insert([{
+    student_id: studentId,
+    label: activity.label || activity.action || 'Activité',
+    action: activity.action || '',
+    time: activity.time || '',
+    metadata: activity
+  }]);
+  if (error) throw error;
+  return true;
+}
+
+async function syncStudentLibraryToSupabase(payload) {
+  const studentId = await getLoggedInStudentId();
+  if (!studentId) return false;
+
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  const { error: deleteError } = await supabase.from('student_library_items').delete().eq('student_id', studentId);
+  if (deleteError) throw deleteError;
+
+  if (!items.length) return true;
+
+  const { error } = await supabase.from('student_library_items').insert(items.map(item => ({
+    student_id: studentId,
+    course_id: item.courseId || item.course_id || null,
+    item_id: item.itemId || item.item_id || null,
+    title: item.title || '',
+    kind: item.kind || '',
+    url: item.url || '',
+    file_name: item.fileName || item.file_name || '',
+    note: item.note || '',
+    metadata: item
+  })));
+  if (error) throw error;
+  return true;
+}
+
+async function loadStudentActivityFromSupabase() {
+  const studentId = await getLoggedInStudentId();
+  if (!studentId) return getStudentActivity();
+  const { data, error } = await supabase
+    .from('student_activity_logs')
+    .select('label,action,time,metadata,created_at')
+    .eq('student_id', studentId)
+    .order('created_at', { ascending: false })
+    .limit(12);
+  if (error || !Array.isArray(data)) return getStudentActivity();
+  return data.map(row => ({
+    label: row.label,
+    action: row.action,
+    time: row.time || row.created_at,
+    ...row.metadata
+  }));
+}
+
+async function loadStudentLibraryFromSupabase() {
+  const studentId = await getLoggedInStudentId();
+  if (!studentId) return getStudentLibrary();
+  const { data, error } = await supabase
+    .from('student_library_items')
+    .select('course_id,item_id,title,kind,url,file_name,note,metadata,created_at')
+    .eq('student_id', studentId)
+    .order('created_at', { ascending: false });
+  if (error || !Array.isArray(data)) return getStudentLibrary();
+  return {
+    items: data.map(row => ({
+      courseId: row.course_id,
+      itemId: row.item_id,
+      title: row.title,
+      kind: row.kind,
+      url: row.url,
+      fileName: row.file_name,
+      note: row.note,
+      ...row.metadata
+    }))
+  };
 }
 
 function getCourseContentKey(courseId = getActiveCourseId()) {
@@ -957,6 +1195,7 @@ function getCourseContentKey(courseId = getActiveCourseId()) {
 }
 
 function getCourseContent(courseId = getActiveCourseId()) {
+  if (courseContentCache.has(courseId)) return courseContentCache.get(courseId);
   try {
     const saved = localStorage.getItem(getCourseContentKey(courseId));
     if (saved) {
@@ -976,9 +1215,50 @@ function getCourseContent(courseId = getActiveCourseId()) {
   return defaultCourseContent;
 }
 
-function saveCourseContent(content, courseId = getActiveCourseId()) {
+async function saveCourseContent(content, courseId = getActiveCourseId()) {
+  const normalized = Array.isArray(content) ? content : [];
+  courseContentCache.set(courseId, normalized);
   try {
-    localStorage.setItem(getCourseContentKey(courseId), JSON.stringify(content));
+    localStorage.setItem(getCourseContentKey(courseId), JSON.stringify(normalized));
+    const sectionsPayload = [];
+    const itemsPayload = [];
+    normalized.forEach((section, sectionIndex) => {
+      sectionsPayload.push({
+        id: section.id,
+        course_id: courseId,
+        title: section.title,
+        position: sectionIndex,
+        updated_at: new Date().toISOString()
+      });
+      (section.items || []).forEach((item, itemIndex) => {
+        itemsPayload.push({
+          id: item.id,
+          course_id: courseId,
+          section_id: section.id,
+          title: item.title,
+          type: item.type || 'document',
+          url: item.url || '',
+          note: item.note || '',
+          file_name: item.fileName || item.file_name || '',
+          deadline_at: item.deadline_at || null,
+          position: itemIndex,
+          updated_at: new Date().toISOString()
+        });
+      });
+    });
+
+    const { error: deleteItemsError } = await supabase.from('course_items').delete().eq('course_id', courseId);
+    if (deleteItemsError) throw deleteItemsError;
+    const { error: deleteSectionsError } = await supabase.from('course_sections').delete().eq('course_id', courseId);
+    if (deleteSectionsError) throw deleteSectionsError;
+    if (sectionsPayload.length) {
+      const { error: sectionsError } = await supabase.from('course_sections').insert(sectionsPayload);
+      if (sectionsError) throw sectionsError;
+    }
+    if (itemsPayload.length) {
+      const { error: itemsError } = await supabase.from('course_items').insert(itemsPayload);
+      if (itemsError) throw itemsError;
+    }
     return true;
   } catch (error) {
     console.warn('Impossible de sauvegarder le contenu du cours.', error);
@@ -1189,6 +1469,8 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
     studentAssignedCourse.textContent = `Cours attribué: ${assignedLabel}`;
   }
 
+  const { activityData } = await hydrateStudentExtras();
+
   if (!assignedCourses.length && !purchasedCourses.length) {
     courseList.innerHTML = '<p class="student-empty-section">Aucun cours attribué pour le moment.</p>';
     courseTitle.textContent = 'Aucun cours payant actif';
@@ -1281,7 +1563,7 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
   }
 
   if (recentActivity) {
-    const activities = getStudentActivity();
+    const activities = Array.isArray(activityData) ? activityData : getStudentActivity();
     recentActivity.innerHTML = activities.length
       ? activities.map(activity => `
         <div class="activity-item">
@@ -1364,6 +1646,15 @@ async function getDatabaseStudentSnapshot() {
     assignedCourseTitle: assignedCourseTitles[0] || '',
     assignedCourseTitles
   };
+}
+
+async function hydrateStudentExtras() {
+  const [libraryData, activityData] = await Promise.all([
+    loadStudentLibraryFromSupabase().catch(() => getStudentLibrary()),
+    loadStudentActivityFromSupabase().catch(() => getStudentActivity())
+  ]);
+
+  return { libraryData, activityData };
 }
 
 function renderAdminCourseBuilder() {
@@ -1535,21 +1826,21 @@ function fillAdminCourseForm(course) {
   if (descriptionInput) descriptionInput.value = course.description || '';
 }
 
-function initAdminCourses() {
+async function initAdminCourses() {
   const courseForm = document.getElementById('adminCourseForm');
   const courseList = document.getElementById('adminCourseList');
   if (!courseForm) return;
 
+  await ensureCourseDataLoaded();
   const currentCourses = getCourses();
-  // On recharge la liste si elle est vide ou si elle ne contient que l'ancien cours unique
-  if (!localStorage.getItem(COURSES_KEY) || (currentCourses.length === 1 && currentCourses[0].id === 'free-ai')) {
-    saveCourses(defaultCourses);
+  if (!currentCourses.length) {
+    await saveCourses(defaultCourses);
   }
 
   renderAdminCourseList();
   fillAdminCourseForm(getCourses().find(course => course.id === getActiveCourseId()));
 
-  courseForm.addEventListener('submit', (event) => {
+  courseForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const titleInput = document.getElementById('courseTitle');
     const slugInput = document.getElementById('courseSlug');
@@ -1581,17 +1872,17 @@ function initAdminCourses() {
         description: descriptionInput.value.trim()
       };
       courses.push(course);
-      saveCourseContent([], course.id);
+      await saveCourseContent([], course.id);
     }
 
-    saveCourses(courses);
+    await saveCourses(courses);
     setActiveCourseId(course.id);
     courseForm.reset();
     renderAdminCourseList();
     renderAdminCourseBuilder();
   });
 
-  courseList?.addEventListener('click', (event) => {
+  courseList?.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-select-course]');
     if (!button) return;
     setActiveCourseId(button.dataset.selectCourse);
@@ -1602,7 +1893,7 @@ function initAdminCourses() {
   });
 }
 
-function initAdminCourseBuilder() {
+async function initAdminCourseBuilder() {
   const sectionForm = document.getElementById('courseSectionForm');
   const itemForm = document.getElementById('courseItemForm');
   const outline = document.getElementById('adminCourseOutline');
@@ -1623,13 +1914,7 @@ function initAdminCourseBuilder() {
     itemUrl.required = !usesFile && itemType.value === 'link';
   }
 
-  if (!localStorage.getItem(COURSES_KEY)) {
-    saveCourses(defaultCourses);
-  }
-
-  if (!localStorage.getItem(getCourseContentKey('free-ai'))) {
-    saveCourseContent(getCourseContent('free-ai'), 'free-ai');
-  }
+  await ensureCourseDataLoaded();
 
   renderAdminCourseBuilder();
   updateItemSourceField();
@@ -1641,7 +1926,7 @@ function initAdminCourseBuilder() {
     renderAdminCourseBuilder();
   });
 
-  sectionForm.addEventListener('submit', (event) => {
+  sectionForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const titleInput = document.getElementById('sectionTitle');
     const title = titleInput.value.trim();
@@ -1650,7 +1935,7 @@ function initAdminCourseBuilder() {
     const activeCourseId = getActiveCourseId();
     const content = getCourseContent(activeCourseId);
     content.push({ id: createId('section'), title, items: [] });
-    saveCourseContent(content, activeCourseId);
+    await saveCourseContent(content, activeCourseId);
     titleInput.value = '';
     renderAdminCourseBuilder();
   });
@@ -1690,14 +1975,14 @@ function initAdminCourseBuilder() {
     }
 
     targetSection.items.push({ id: createId('item'), title, type, url, note, fileName });
-    if (!saveCourseContent(content, activeCourseId)) return;
+    if (!await saveCourseContent(content, activeCourseId)) return;
     itemForm.reset();
     document.getElementById('itemSection').value = sectionId;
     updateItemSourceField();
     renderAdminCourseBuilder();
   });
 
-  outline.addEventListener('click', (event) => {
+  outline.addEventListener('click', async (event) => {
     const sectionButton = event.target.closest('[data-delete-section]');
     const editSectionButton = event.target.closest('[data-edit-section]');
     const moveSectionButton = event.target.closest('[data-move-section]');
@@ -1709,7 +1994,7 @@ function initAdminCourseBuilder() {
 
     if (sectionButton) {
       content = content.filter(section => section.id !== sectionButton.dataset.deleteSection);
-      saveCourseContent(content, activeCourseId);
+      await saveCourseContent(content, activeCourseId);
       renderAdminCourseBuilder();
       return;
     }
@@ -1719,7 +2004,7 @@ function initAdminCourseBuilder() {
       const title = prompt('Nouveau titre de section', section?.title || '');
       if (!section || !title?.trim()) return;
       section.title = title.trim();
-      saveCourseContent(content, activeCourseId);
+      await saveCourseContent(content, activeCourseId);
       renderAdminCourseBuilder();
       return;
     }
@@ -1727,7 +2012,7 @@ function initAdminCourseBuilder() {
     if (moveSectionButton) {
       const index = content.findIndex(section => section.id === moveSectionButton.dataset.moveSection);
       content = moveArrayItem(content, index, Number(moveSectionButton.dataset.direction));
-      saveCourseContent(content, activeCourseId);
+      await saveCourseContent(content, activeCourseId);
       renderAdminCourseBuilder();
       return;
     }
@@ -1740,7 +2025,7 @@ function initAdminCourseBuilder() {
           items: section.items.filter(item => item.id !== itemButton.dataset.deleteItem)
         };
       });
-      saveCourseContent(content, activeCourseId);
+      await saveCourseContent(content, activeCourseId);
       renderAdminCourseBuilder();
       return;
     }
@@ -1751,7 +2036,7 @@ function initAdminCourseBuilder() {
       const title = prompt('Nouveau titre du contenu', item?.title || '');
       if (!item || !title?.trim()) return;
       item.title = title.trim();
-      saveCourseContent(content, activeCourseId);
+      await saveCourseContent(content, activeCourseId);
       renderAdminCourseBuilder();
       return;
     }
@@ -1765,13 +2050,13 @@ function initAdminCourseBuilder() {
           items: moveArrayItem(section.items, index, Number(moveItemButton.dataset.direction))
         };
       });
-      saveCourseContent(content, activeCourseId);
+      await saveCourseContent(content, activeCourseId);
       renderAdminCourseBuilder();
     }
   });
 
-  resetButton?.addEventListener('click', () => {
-    saveCourseContent(defaultCourseContent, getActiveCourseId());
+  resetButton?.addEventListener('click', async () => {
+    await saveCourseContent(defaultCourseContent, getActiveCourseId());
     renderAdminCourseBuilder();
   });
 }
@@ -1963,6 +2248,31 @@ function initAdminLogoutButton() {
     localStorage.removeItem(STUDENT_PROFILE_KEY);
     playLogoTransition('index.html');
   });
+}
+
+function refreshAdminViews() {
+  renderAdminStudentList();
+  renderAdminOverviewStats();
+  renderAdminPaymentsTable();
+  renderAdminAssignmentsTable();
+  renderAdminCourseList();
+  renderAdminCourseBuilder();
+  populateAssignmentCourseSelect();
+}
+
+function startAdminRealtimeSync() {
+  if (adminRealtimeChannel) return;
+  adminRealtimeChannel = supabase
+    .channel('urbvec-admin-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'course_sections' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'course_items' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'student_courses' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'student_activity_logs' }, refreshAdminViews)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'student_library_items' }, refreshAdminViews)
+    .subscribe();
 }
 
 let welcomeScrollY = 0;
@@ -2260,7 +2570,7 @@ async function initPaidStudentDashboard() {
 }
 
 // Initializer for DOM content loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initAppHeight();
   initMenuToggle();
   initCourseFilters();
@@ -2269,6 +2579,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initContactForm();
   initRegistrationForm();
   initAiCourseQuiz();
+  await ensureCourseDataLoaded();
   renderStudentCourseOutline();
 
   // Initialisations spécifiques à la page d'administration
@@ -2276,14 +2587,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.querySelector('.admin-sidebar')) {
     initAdminTabs();
     initAdminLogoutButton();
-    initAdminCourses();
-    initAdminCourseBuilder();
-    renderAdminStudentList();
-    renderAdminOverviewStats();
-    renderAdminPaymentsTable();
-    renderAdminAssignmentsTable();
-    populateAssignmentCourseSelect();
+    await initAdminCourses();
+    await initAdminCourseBuilder();
+    refreshAdminViews();
     initAdminStudentActions();
+    startAdminRealtimeSync();
   }
   initOnlineLoginForm();
   initAdminStudentForm();

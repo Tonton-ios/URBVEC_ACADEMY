@@ -231,6 +231,31 @@ create table if not exists public.registrations (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.student_activity_logs (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  label text not null,
+  action text default '',
+  time text default '',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.student_library_items (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  course_id uuid references public.courses(id) on delete cascade,
+  item_id uuid,
+  title text not null,
+  kind text default '',
+  url text default '',
+  file_name text default '',
+  note text default '',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists course_sections_course_position_idx
   on public.course_sections(course_id, position);
 
@@ -255,6 +280,8 @@ alter table public.assignments enable row level security;
 alter table public.assignment_submissions enable row level security;
 alter table public.course_notifications enable row level security;
 alter table public.registrations enable row level security;
+alter table public.student_activity_logs enable row level security;
+alter table public.student_library_items enable row level security;
 
 drop policy if exists "Public can read published courses" on public.courses;
 create policy "Public can read published courses"
@@ -446,6 +473,27 @@ drop policy if exists "Admins can read registrations" on public.registrations;
 create policy "Admins can read registrations"
 on public.registrations for select
 using (public.is_admin());
+
+drop policy if exists "Students can read their activity logs" on public.student_activity_logs;
+create policy "Students can read their activity logs"
+on public.student_activity_logs for select
+using (auth.uid() = student_id or public.is_admin());
+
+drop policy if exists "Students can insert their activity logs" on public.student_activity_logs;
+create policy "Students can insert their activity logs"
+on public.student_activity_logs for insert
+with check (auth.uid() = student_id or public.is_admin());
+
+drop policy if exists "Students can read their library items" on public.student_library_items;
+create policy "Students can read their library items"
+on public.student_library_items for select
+using (auth.uid() = student_id or public.is_admin());
+
+drop policy if exists "Students can manage their library items" on public.student_library_items;
+create policy "Students can manage their library items"
+on public.student_library_items for all
+using (auth.uid() = student_id or public.is_admin())
+with check (auth.uid() = student_id or public.is_admin());
 
 drop policy if exists "Public can read course files" on storage.objects;
 create policy "Public can read course files"
