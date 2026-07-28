@@ -2564,6 +2564,37 @@ function initAdminLogoutButton() {
   });
 }
 
+async function initAdminSettings() {
+  const form = document.getElementById('adminSettingsForm');
+  if (!form) return;
+  const nameInput = document.getElementById('adminSettingsName');
+  const emailInput = document.getElementById('adminSettingsEmail');
+  const phoneInput = document.getElementById('adminSettingsPhone');
+  const passwordInput = document.getElementById('adminSettingsPassword');
+  const confirmInput = document.getElementById('adminSettingsPasswordConfirm');
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return;
+  const { data: profile } = await supabase.from('profiles').select('full_name,email,phone,is_admin').eq('id', session.user.id).maybeSingle();
+  if (!profile?.is_admin && !session.user.user_metadata?.is_admin) return;
+  nameInput.value = profile?.full_name || session.user.user_metadata?.full_name || '';
+  emailInput.value = profile?.email || session.user.email || '';
+  phoneInput.value = profile?.phone || session.user.user_metadata?.phone || '';
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (passwordInput.value && passwordInput.value !== confirmInput.value) return alert('Les mots de passe ne correspondent pas.');
+    const { error: profileError } = await supabase.from('profiles').update({ full_name: nameInput.value.trim(), phone: phoneInput.value.trim(), updated_at: new Date().toISOString() }).eq('id', session.user.id);
+    if (profileError) return alert(profileError.message);
+    if (passwordInput.value) {
+      const { error: passwordError } = await supabase.auth.updateUser({ password: passwordInput.value });
+      if (passwordError) return alert(passwordError.message);
+    }
+    passwordInput.value = '';
+    confirmInput.value = '';
+    alert('Paramètres administrateur enregistrés.');
+  });
+}
+
 function refreshAdminViews() {
   renderAdminStudentList();
   renderAdminOverviewStats();
@@ -2943,6 +2974,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (document.querySelector('.admin-sidebar')) {
     await runSafe(async () => initAdminTabs());
     await runSafe(async () => initAdminLogoutButton());
+    await runSafe(async () => initAdminSettings());
     await runSafe(async () => initAdminCourses());
     await runSafe(async () => initAdminCourseBuilder());
     await runSafe(async () => refreshAdminViews());

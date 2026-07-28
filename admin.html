@@ -337,6 +337,16 @@
   <section class="admin-tab" id="admin-tab-settings">
     <div class="admin-panel">
       <div class="admin-panel-head"><h2>Paramètres</h2><span>Sécurité et Supabase</span></div>
+      <form class="admin-form" id="adminSettingsForm">
+        <div class="admin-form-grid">
+          <div class="form-group"><label for="adminSettingsName">Nom administrateur</label><input id="adminSettingsName" type="text" required></div>
+          <div class="form-group"><label for="adminSettingsEmail">Email de connexion</label><input id="adminSettingsEmail" type="email" readonly></div>
+          <div class="form-group"><label for="adminSettingsPhone">Téléphone</label><input id="adminSettingsPhone" type="tel"></div>
+          <div class="form-group"><label for="adminSettingsPassword">Nouveau mot de passe</label><input id="adminSettingsPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Laisser vide pour conserver"></div>
+          <div class="form-group"><label for="adminSettingsPasswordConfirm">Confirmer le mot de passe</label><input id="adminSettingsPasswordConfirm" type="password" minlength="6" autocomplete="new-password"></div>
+        </div>
+        <button class="admin-primary-btn" type="submit"><i class="ti ti-device-floppy"></i> Enregistrer les paramètres</button>
+      </form>
       <div class="admin-system-list">
         <span><i class="ti ti-database"></i> Config publique : <code>supabase-config.js</code></span>
         <span><i class="ti ti-shield-lock"></i> Ne jamais mettre la clé service role dans le navigateur.</span>
