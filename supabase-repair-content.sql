@@ -41,17 +41,19 @@ where item.section_id = section.id
 delete from public.course_items item
 where not exists (select 1 from public.course_sections section where section.id = item.section_id);
 
-create unique index if not exists course_sections_id_course_id_uidx
-  on public.course_sections(id, course_id);
-
+-- Une section a déjà une clé primaire globale (id). La contrainte composée
+-- ajoutée auparavant n'est pas nécessaire et empêchait la modification ou
+-- suppression de sections existantes dans certains projets.
 alter table public.course_items
   drop constraint if exists course_items_section_id_fkey,
   drop constraint if exists course_items_section_course_fkey;
 
+drop index if exists public.course_sections_id_course_id_uidx;
+
 alter table public.course_items
-  add constraint course_items_section_course_fkey
-  foreign key (section_id, course_id)
-  references public.course_sections(id, course_id)
+  add constraint course_items_section_id_fkey
+  foreign key (section_id)
+  references public.course_sections(id)
   on delete cascade;
 
 create index if not exists course_sections_course_position_idx

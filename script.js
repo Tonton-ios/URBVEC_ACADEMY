@@ -86,15 +86,47 @@ function initCourseFilters() {
 // Rendre les cartes cliquables
 function initClickableCards() {
   document.querySelectorAll('.course-card-expanded').forEach(card => {
+    const status = (card.dataset.status || 'Publié').trim();
+    const enrollLink = card.querySelector('a.btn-enroll');
+    const title = card.querySelector('h3')?.textContent?.trim() || '';
+    const available = isCourseAvailable({ status });
+
+    if (!card.querySelector('.course-availability-badge')) {
+      const badge = document.createElement('span');
+      badge.className = `course-availability-badge ${available ? 'available' : 'unavailable'}`;
+      badge.textContent = available ? 'Disponible' : 'Indisponible';
+      card.querySelector('.course-body')?.prepend(badge);
+    }
+    card.classList.toggle('is-unavailable', !available);
+
+    if (enrollLink) {
+      enrollLink.classList.toggle('is-disabled', !available);
+      enrollLink.setAttribute('aria-disabled', String(!available));
+      if (!enrollLink.hasAttribute('data-original-href')) {
+        enrollLink.setAttribute('data-original-href', enrollLink.getAttribute('href') || 'inscription.html');
+      }
+      enrollLink.setAttribute('href', available ? enrollLink.getAttribute('data-original-href') || 'inscription.html' : '#');
+      enrollLink.setAttribute('tabindex', available ? '0' : '-1');
+      if (!available) {
+        enrollLink.innerHTML = '<i class="ti ti-ban"></i> Indisponible';
+      }
+    }
+
     card.addEventListener('click', function(event) {
       const enrollLink = event.target.closest('a.btn-enroll');
       if (enrollLink) {
-        const title = this.querySelector('h3')?.textContent?.trim() || '';
+        if (!available) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
         rememberPendingCourseSelection(slugify(title), title);
         return;
       }
 
       if (event.target.closest('a, button')) return;
+
+      if (!available) return;
 
       const title = this.querySelector('h3')?.textContent || '';
       const category = this.querySelector('.course-cat')?.textContent || '';
@@ -103,13 +135,13 @@ function initClickableCards() {
       const description = this.querySelector('p')?.textContent || '';
       const image = this.querySelector('.course-thumb')?.style.backgroundImage || '';
       
-      openCourseModal(title, category, level, duration, description, image);
+      openCourseModal(title, category, level, duration, description, image, status);
     });
   });
 }
 
 // Ouvrir le modal
-function openCourseModal(title, category, level, duration, description, image) {
+function openCourseModal(title, category, level, duration, description, image, status = 'Publié') {
   const modal = document.getElementById('courseModal');
   if (!modal) return;
 
@@ -125,6 +157,18 @@ function openCourseModal(title, category, level, duration, description, image) {
   setText('modalDescription', description);
   const modalImage = document.getElementById('modalImage');
   if (modalImage) modalImage.style.backgroundImage = image;
+  modal.dataset.courseStatus = status;
+
+  const enrollButton = modal.querySelector('[data-enroll-course]');
+  if (enrollButton) {
+    const available = isCourseAvailable({ status });
+    enrollButton.disabled = !available;
+    enrollButton.classList.toggle('is-disabled', !available);
+    enrollButton.setAttribute('aria-disabled', String(!available));
+    enrollButton.innerHTML = available
+      ? '<i class="ti ti-play"></i> S\'inscrire maintenant'
+      : '<i class="ti ti-ban"></i> Indisponible';
+  }
   
   // Contenu d'apprentissage générique
   const learnings = ['Contenu structuré et actualisé', 'Vidéos tutoriels détaillées', 'Exercices pratiques', 'Support expert disponible'];
@@ -149,6 +193,8 @@ function closeCourseModal() {
 // S'inscrire
 function enrollCourse() {
   const modalTitle = document.getElementById('modalTitle')?.textContent?.trim() || '';
+  const modalStatus = document.getElementById('courseModal')?.dataset.courseStatus || 'Publié';
+  if (!isCourseAvailable({ status: modalStatus })) return;
   rememberPendingCourseSelection(slugify(modalTitle), modalTitle);
   window.location.href = 'inscription.html';
   closeCourseModal();
@@ -938,6 +984,21 @@ function createId() {
   return `${random().slice(0, 8)}-${random().slice(0, 4)}-4${random().slice(0, 3)}-8${random().slice(0, 3)}-${random()}${random().slice(0, 4)}`;
 }
 
+// Ne jamais réutiliser les objets/identifiants du contenu modèle entre deux cours.
+// Sans cette copie, modifier un nouveau cours pouvait tenter de rattacher une
+// section déjà enregistrée pour un autre cours (conflit 409 dans Supabase).
+function cloneCourseContent(content = []) {
+  return content.map(section => ({
+    id: section.id,
+    title: section.title || '',
+    items: (section.items || []).map(item => ({ ...item }))
+  }));
+}
+
+function getInitialCourseContent(courseId) {
+  return courseId === defaultCourses[0].id ? cloneCourseContent(defaultCourseContent) : [];
+}
+
 function slugify(value) {
   return value
     .toLowerCase()
@@ -1017,12 +1078,16 @@ async function loadCourseContentFromSupabase(courseId) {
       courseContentCache.set(courseId, grouped);
       return grouped;
     }
-    if (courseId === defaultCourses[0].id) return defaultCourseContent;
+    if (courseId === defaultCourses[0].id) {
+      const fallback = getInitialCourseContent(courseId);
+      courseContentCache.set(courseId, fallback);
+      return fallback;
+    }
   } catch (error) {
     console.warn('Impossible de charger le contenu depuis Supabase.', error);
   }
 
-  const fallback = courseId === defaultCourses[0].id ? defaultCourseContent : [];
+  const fallback = getInitialCourseContent(courseId);
   courseContentCache.set(courseId, fallback);
   return fallback;
 }
@@ -1183,7 +1248,9 @@ async function loadStudentLibraryFromSupabase() {
 
 function getCourseContent(courseId = getActiveCourseId()) {
   if (courseContentCache.has(courseId)) return courseContentCache.get(courseId);
-  return defaultCourseContent;
+  const initialContent = getInitialCourseContent(courseId);
+  courseContentCache.set(courseId, initialContent);
+  return initialContent;
 }
 
 async function saveCourseContent(content, courseId = getActiveCourseId()) {
@@ -1259,6 +1326,9 @@ async function saveCourseContent(content, courseId = getActiveCourseId()) {
     return true;
   } catch (error) {
     console.warn('Impossible de sauvegarder le contenu du cours.', error);
+    // La modification locale ne doit pas masquer le contenu réellement
+    // enregistré si Supabase a refusé la demande.
+    await loadCourseContentFromSupabase(courseId);
     const reason = error?.message ? ' Détail Supabase : ' + error.message : '';
     alert("Impossible d'enregistrer le contenu. Vérifie les droits administrateur et la migration Supabase." + reason);
     return false;
@@ -1916,6 +1986,7 @@ async function initAdminCourses() {
     const button = event.target.closest('[data-select-course]');
     if (!button) return;
     setActiveCourseId(button.dataset.selectCourse);
+    await loadCourseContentFromSupabase(button.dataset.selectCourse);
     const selectedCourse = getCourses().find(course => course.id === button.dataset.selectCourse);
     fillAdminCourseForm(selectedCourse);
     renderAdminCourseList();
@@ -1951,8 +2022,9 @@ async function initAdminCourseBuilder() {
   updateItemSourceField();
   itemType?.addEventListener('change', updateItemSourceField);
 
-  document.getElementById('contentCourseSelect')?.addEventListener('change', (event) => {
+  document.getElementById('contentCourseSelect')?.addEventListener('change', async (event) => {
     setActiveCourseId(event.target.value);
+    await loadCourseContentFromSupabase(event.target.value);
     renderAdminCourseList();
     renderAdminCourseBuilder();
   });
@@ -2092,7 +2164,8 @@ async function initAdminCourseBuilder() {
   });
 
   resetButton?.addEventListener('click', async () => {
-    await saveCourseContent(defaultCourseContent, getActiveCourseId());
+    const activeCourseId = getActiveCourseId();
+    await saveCourseContent(getInitialCourseContent(activeCourseId), activeCourseId);
     renderAdminCourseBuilder();
   });
 }

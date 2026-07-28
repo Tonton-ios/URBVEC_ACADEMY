@@ -2889,6 +2889,14 @@
       border-color: var(--urb-gold);
       box-shadow: 0 10px 30px rgba(239,159,39,0.2);
     }
+    .course-card-expanded.is-unavailable {
+      opacity: 0.9;
+      border-color: rgba(239,68,68,0.35);
+    }
+    .course-card-expanded.is-unavailable:hover {
+      transform: none;
+      box-shadow: 0 10px 30px rgba(239,68,68,0.12);
+    }
     .course-card-expanded .course-thumb { 
       height: 120px; 
       position: relative;
@@ -2902,6 +2910,29 @@
       background: rgba(0, 0, 0, 0.25);
     }
     .course-card-expanded .course-body { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; background: var(--urb-blue-dark); }
+    .course-card-expanded .course-availability-badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      gap: 0.35rem;
+      padding: 0.3rem 0.65rem;
+      margin-bottom: 0.85rem;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .course-card-expanded .course-availability-badge.available {
+      color: #a7f3d0;
+      background: rgba(16,185,129,0.14);
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .course-card-expanded .course-availability-badge.unavailable {
+      color: #fecaca;
+      background: rgba(239,68,68,0.16);
+      border: 1px solid rgba(239,68,68,0.28);
+    }
     .course-card-expanded .course-cat { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--urb-gold); text-transform: uppercase; margin-bottom: 0.5rem; }
     .course-card-expanded h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 0.75rem; line-height: 1.3; }
     .course-card-expanded p { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 1rem; flex-grow: 1; line-height: 1.6; }
@@ -2918,6 +2949,15 @@
     }
     .course-card-expanded .btn-enroll:hover {
       background: var(--urb-gold-dark); color: #fff;
+    }
+    .course-card-expanded .btn-enroll.is-disabled,
+    .course-card-expanded .btn-enroll[aria-disabled="true"] {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.55);
+      pointer-events: none;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
     }
 
     /* WELCOME PAGE */
