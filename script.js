@@ -361,10 +361,15 @@ async function saveStudentToDatabase(student) {
       }
     });
     if (error) throw error;
-    return data?.id || null;
+    if (!data?.id) throw new Error('La création du compte étudiant a échoué.');
+    return data.id;
   } catch (error) {
     console.warn('Impossible de sauvegarder l\'étudiant dans Supabase:', error);
-    return null;
+    const detail = String(error?.message || '');
+    if (/function|fetch|network|non-2xx/i.test(detail)) {
+      throw new Error("Le service de création des étudiants n'est pas déployé sur Supabase. Déploie la fonction « admin-create-student », puis réessaie.");
+    }
+    throw new Error(detail || "Le compte étudiant n'a pas pu être créé.");
   }
 }
 
@@ -2203,24 +2208,13 @@ function initAdminStudentForm() {
         assignedCourseIds: courseIds,
         assignedCourseTitles: courseTitles
       });
-      saveStudentProfile({
-        fullName,
-        email,
-        phone,
-        assignedCourseId: courseIds[0],
-        assignedCourseIds: courseIds,
-        assignedCourseTitle: courseTitles[0],
-        assignedCourseTitles: courseTitles,
-        profileId: studentProfileId || ''
-      });
-
       form.reset();
       populateAdminStudentCourseSelect();
       renderAdminStudentList();
       alert(`Compte étudiant créé et cours attribué: ${course.title}`);
     } catch (error) {
       console.error('Erreur création étudiant:', error);
-      alert('Erreur inattendue lors de la création du compte étudiant.');
+      alert(error?.message || 'Erreur inattendue lors de la création du compte étudiant.');
     }
   });
 }
@@ -2252,12 +2246,19 @@ function initAdminStudentActions() {
       const nextCourseIds = selectedCourses.split(',').map(item => item.trim()).filter(Boolean);
       if (!nextCourseIds.length) return;
 
-      await saveStudentToDatabase({
-        fullName: registration?.full_name || '',
-        email,
-        phone: registration?.phone || '',
-        assignedCourseIds: nextCourseIds
+      if (!profileRow?.id) {
+        alert("Cet étudiant n'existe pas dans Supabase.");
+        return;
+      }
+      const { error: assignmentError } = await supabase.rpc('admin_assign_courses', {
+        p_student_id: profileRow.id,
+        p_course_ids: nextCourseIds
       });
+      if (assignmentError) {
+        console.warn('Impossible d’attribuer les cours à l’étudiant.', assignmentError);
+        alert(assignmentError.message || "Les cours n'ont pas pu être attribués.");
+        return;
+      }
 
       renderAdminStudentList();
       renderAdminOverviewStats();
@@ -2605,7 +2606,9 @@ async function initOnlineLoginForm() {
       });
 
       if (error || !data?.user) {
-        const message = error?.message || 'Échec de la connexion. Vérifiez vos identifiants.';
+        const message = error?.message === 'Invalid login credentials'
+          ? "Email ou mot de passe incorrect. Si ce compte a été créé avant le déploiement de « admin-create-student », recrée-le depuis l'administration."
+          : (error?.message || 'Échec de la connexion. Vérifiez vos identifiants.');
         console.error('Erreur de connexion:', message);
         alert(message);
         return;
