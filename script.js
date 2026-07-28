@@ -1588,6 +1588,7 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
 
   const activeCourseId = activeCourse?.id || assignedCourseIds[0] || purchasedCourses[0]?.id || getActiveCourseId();
   if (activeCourseId) setActiveCourseId(activeCourseId);
+  await loadCourseContentFromSupabase(activeCourseId);
   const content = getCourseContent(activeCourseId);
   const sectionCount = content.length || 0;
   const itemCount = content.reduce((total, section) => total + section.items.length, 0);
@@ -1626,7 +1627,7 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
         <span><i class="ti ti-calendar-time"></i> ${item.deadline_at ? formatDeadline(item.deadline_at) : 'Sans deadline'}</span>
       </div>
       <label class="student-upload-box ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}">
-        <input type="file" data-assignment-file="${item.id}" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}>
+        <input type="file" data-assignment-file="${item.id}" accept=".pdf,.doc,.docx,.ppt,.pptx,.odt,.txt,image/*" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}>
         <span><i class="ti ti-upload"></i> Déposer le devoir</span>
       </label>
       <textarea data-assignment-text="${item.id}" placeholder="Ajoutez un commentaire" ${isDeadlinePassed(item.deadline_at) ? 'disabled' : ''}></textarea>
@@ -1635,12 +1636,12 @@ async function renderPaidStudentDashboard(selectedCourseId = getActiveCourseId()
   `).join('') : '<p class="student-empty-section">Aucun devoir disponible pour le moment.</p>';
 
   quizPanel.innerHTML = quizzes.length ? quizzes.map(item => `
-    <article class="student-task-card ${isDeadlinePassed(item.deadline_at) ? 'is-locked' : ''}">
+    <article class="student-task-card ${isDeadlinePassed(item.closes_at) ? 'is-locked' : ''}">
       <h3>${escapeHtml(item.title)}</h3>
       <p>${escapeHtml(item.instructions || 'Répondez puis envoyez vos réponses.')}</p>
       <div class="student-task-meta">
         <span><i class="ti ti-bolt"></i> Points définis par l’admin</span>
-        <span><i class="ti ti-calendar-time"></i> ${item.deadline_at ? formatDeadline(item.deadline_at) : 'Sans deadline'}</span>
+        <span><i class="ti ti-calendar-time"></i> ${item.closes_at ? formatDeadline(item.closes_at) : 'Sans deadline'}</span>
       </div>
       <div class="student-quiz-questions">${(item.quiz_questions || []).map(question => `<fieldset><legend>${escapeHtml(question.question)}</legend>${(question.quiz_options || []).sort((a, b) => a.position - b.position).map(option => `<label><input type="radio" name="quiz-${item.id}-${question.id}" value="${option.id}"> ${escapeHtml(option.option_text)}</label>`).join('')}</fieldset>`).join('')}</div>
       <button type="button" class="btn-primary" data-submit-quiz="${item.id}" ${isDeadlinePassed(item.closes_at) ? 'disabled' : ''}>Envoyer le quiz</button>
@@ -2720,7 +2721,7 @@ async function initPaidStudentDashboard() {
   paidDashboard.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-paid-course]');
     if (!button) return;
-    renderPaidStudentDashboard(button.dataset.paidCourse);
+    await renderPaidStudentDashboard(button.dataset.paidCourse);
     showView('courses');
     toggleMenu(false);
   });

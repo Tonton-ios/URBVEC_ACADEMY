@@ -303,28 +303,20 @@ alter table public.student_library_items enable row level security;
 drop policy if exists "Public can read published courses" on public.courses;
 create policy "Public can read published courses"
 on public.courses for select
-using (status = 'Publié');
+using (status = 'Publié' or public.can_access_course(id));
 
 drop policy if exists "Public can read sections" on public.course_sections;
 create policy "Public can read sections"
 on public.course_sections for select
 using (
-  exists (
-    select 1 from public.courses
-    where courses.id = course_sections.course_id
-    and courses.status = 'Publié' -- Only show sections for published courses
-  )
+  public.is_admin() or public.can_access_course(course_sections.course_id)
 );
 
 drop policy if exists "Public can read course items" on public.course_items;
 create policy "Public can read course items"
 on public.course_items for select
 using (
-  exists (
-    select 1 from public.courses
-    where courses.id = course_items.course_id
-    and courses.status = 'Publié' -- Only show items for published courses
-  )
+  public.is_admin() or public.can_access_course(course_items.course_id)
 );
 
 -- Politiques pour les profils
@@ -524,6 +516,20 @@ with check (
   bucket_id = 'course-files' AND
   public.is_admin()
 );
+
+insert into storage.buckets (id, name, public)
+values ('assignment-files', 'assignment-files', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Authenticated students can upload assignment files" on storage.objects;
+create policy "Authenticated students can upload assignment files"
+on storage.objects for insert
+with check (bucket_id = 'assignment-files' and auth.role() = 'authenticated');
+
+drop policy if exists "Public can read assignment files" on storage.objects;
+create policy "Public can read assignment files"
+on storage.objects for select
+using (bucket_id = 'assignment-files');
 
 create or replace function public.admin_assign_courses(
   p_student_id uuid,
