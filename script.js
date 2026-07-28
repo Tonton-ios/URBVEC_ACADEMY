@@ -2293,9 +2293,25 @@ function initAdminAssessments() {
   const quizForm = document.getElementById('adminQuizForm');
   const assignmentForm = document.getElementById('adminAssignmentForm');
   const quizCourse = document.getElementById('quizCourse');
+  const quizList = document.getElementById('adminQuizList');
+  const assignmentList = document.getElementById('adminAssignmentList');
+  let editingQuizId = '';
+  let editingQuestionId = '';
+  let editingAssignmentId = '';
   if (quizCourse) {
     quizCourse.innerHTML = getCourses().map(course => `<option value="${course.id}">${escapeHtml(course.title)}</option>`).join('');
   }
+
+  const renderLists = async () => {
+    const [quizzesResult, assignmentsResult] = await Promise.all([
+      supabase.from('course_quizzes').select('id,title,closes_at,course_id,courses(title)').order('created_at', { ascending: false }),
+      supabase.from('assignments').select('id,title,deadline_at,course_id,courses(title)').order('created_at', { ascending: false })
+    ]);
+    const quizzes = quizzesResult.data || [];
+    const assignments = assignmentsResult.data || [];
+    if (quizList) quizList.innerHTML = quizzes.length ? quizzes.map(item => `<tr><td>${escapeHtml(item.title)}</td><td>${escapeHtml(item.courses?.title || getCourseById(item.course_id)?.title || '')}</td><td>${item.closes_at ? escapeHtml(formatDeadline(item.closes_at)) : 'Sans deadline'}</td><td><button type="button" class="admin-secondary-btn" data-edit-quiz="${item.id}">Modifier</button> <button type="button" class="admin-secondary-btn" data-delete-quiz="${item.id}">Supprimer</button></td></tr>`).join('') : '<tr><td colspan="4">Aucun quiz.</td></tr>';
+    if (assignmentList) assignmentList.innerHTML = assignments.length ? assignments.map(item => `<tr><td>${escapeHtml(item.title)}</td><td>${escapeHtml(item.courses?.title || getCourseById(item.course_id)?.title || '')}</td><td>${item.deadline_at ? escapeHtml(formatDeadline(item.deadline_at)) : 'Sans deadline'}</td><td><button type="button" class="admin-secondary-btn" data-edit-assignment="${item.id}">Modifier</button> <button type="button" class="admin-secondary-btn" data-delete-assignment="${item.id}">Supprimer</button></td></tr>`).join('') : '<tr><td colspan="4">Aucun devoir.</td></tr>';
+  };
 
   quizForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -2304,20 +2320,42 @@ function initAdminAssessments() {
     const correct = getInputValue('quizCorrect');
     const options = ['quizOptionA', 'quizOptionB', 'quizOptionC', 'quizOptionD'].map(getInputValue).filter(Boolean);
     if (!courseId || !question || options.length < 2 || !correct) return alert('Remplis le cours, la question, au moins deux options et la bonne réponse.');
-    const { data: quiz, error: quizError } = await supabase.from('course_quizzes').insert({
+    const quizPayload = {
       course_id: courseId,
       title: getInputValue('quizChapter', 'Quiz'),
       closes_at: document.getElementById('quizDeadline')?.value || null,
       time_limit_minutes: Number(getInputValue('quizTimeline').match(/\d+/)?.[0] || 0),
       shuffle_questions: getInputValue('quizShuffle') === 'Oui'
-    }).select('id').single();
+    };
+    let quiz;
+    let quizError;
+    if (editingQuizId) {
+      ({ data: quiz, error: quizError } = await supabase.from('course_quizzes').update(quizPayload).eq('id', editingQuizId).select('id').single());
+    } else {
+      ({ data: quiz, error: quizError } = await supabase.from('course_quizzes').insert(quizPayload).select('id').single());
+    }
     if (quizError || !quiz) return alert(quizError?.message || 'Impossible de créer le quiz.');
-    const { data: savedQuestion, error: questionError } = await supabase.from('quiz_questions').insert({ quiz_id: quiz.id, question, points: Number(getInputValue('quizPoints') || 1) }).select('id').single();
+    const questionPayload = { quiz_id: quiz.id, question, points: Number(getInputValue('quizPoints') || 1) };
+    let savedQuestion;
+    let questionError;
+    if (editingQuizId) {
+      ({ data: savedQuestion, error: questionError } = await supabase.from('quiz_questions').update(questionPayload).eq('id', editingQuestionId).select('id').single());
+    } else {
+      ({ data: savedQuestion, error: questionError } = await supabase.from('quiz_questions').insert(questionPayload).select('id').single());
+    }
     if (questionError || !savedQuestion) return alert(questionError?.message || 'Quiz créé, mais question non enregistrée.');
+    if (editingQuizId) {
+      const { error: removeOptionsError } = await supabase.from('quiz_options').delete().eq('question_id', savedQuestion.id);
+      if (removeOptionsError) return alert(removeOptionsError.message);
+    }
     const { error: optionError } = await supabase.from('quiz_options').insert(options.map((option_text, position) => ({ question_id: savedQuestion.id, option_text, position, is_correct: option_text.trim().toLowerCase() === correct.trim().toLowerCase() })));
     if (optionError) return alert(optionError.message);
+    editingQuizId = '';
+    editingQuestionId = '';
     quizForm.reset();
-    alert('Quiz publié avec succès.');
+    quizForm.querySelector('button[type="submit"]').innerHTML = '<i class="ti ti-device-floppy"></i> Enregistrer la question';
+    await renderLists();
+    alert('Quiz enregistré avec succès.');
   });
 
   assignmentForm?.addEventListener('submit', async (event) => {
@@ -2325,18 +2363,70 @@ function initAdminAssessments() {
     const courseId = getInputValue('assignmentCourse');
     const title = getInputValue('assignmentTitle');
     if (!courseId || !title) return alert('Choisis un cours et ajoute un titre.');
-    const { error } = await supabase.from('assignments').insert({
+    const payload = {
       course_id: courseId,
       title,
       instructions: getInputValue('assignmentInstructions'),
       deadline_at: document.getElementById('assignmentDeadline')?.value || null,
       max_score: Number(getInputValue('assignmentMaxScore') || 20)
-    });
+    };
+    const { error } = editingAssignmentId
+      ? await supabase.from('assignments').update(payload).eq('id', editingAssignmentId)
+      : await supabase.from('assignments').insert(payload);
     if (error) return alert(error.message);
+    editingAssignmentId = '';
     assignmentForm.reset();
     populateAssignmentCourseSelect();
-    alert('Devoir publié avec succès.');
+    await renderLists();
+    alert('Devoir enregistré avec succès.');
   });
+
+  const loadAssignment = async (id) => {
+    const { data, error } = await supabase.from('assignments').select('*').eq('id', id).single();
+    if (error || !data) return alert(error?.message || 'Devoir introuvable.');
+    editingAssignmentId = id;
+    document.getElementById('assignmentCourse').value = data.course_id;
+    document.getElementById('assignmentTitle').value = data.title || '';
+    document.getElementById('assignmentInstructions').value = data.instructions || '';
+    document.getElementById('assignmentDeadline').value = data.deadline_at ? data.deadline_at.slice(0, 16) : '';
+    document.getElementById('assignmentMaxScore').value = data.max_score || 20;
+  };
+  const loadQuiz = async (id) => {
+    const { data, error } = await supabase.from('course_quizzes').select('*,quiz_questions(id,question,points,quiz_options(id,option_text,is_correct,position))').eq('id', id).single();
+    const question = data?.quiz_questions?.[0];
+    if (error || !data || !question) return alert(error?.message || 'Quiz introuvable.');
+    editingQuizId = id;
+    editingQuestionId = question.id;
+    document.getElementById('quizCourse').value = data.course_id;
+    document.getElementById('quizChapter').value = data.title || 'Quiz';
+    document.getElementById('quizQuestion').value = question.question || '';
+    document.getElementById('quizPoints').value = question.points || 1;
+    document.getElementById('quizDeadline').value = data.closes_at ? data.closes_at.slice(0, 16) : '';
+    const opts = (question.quiz_options || []).sort((a, b) => a.position - b.position);
+    ['quizOptionA', 'quizOptionB', 'quizOptionC', 'quizOptionD'].forEach((field, index) => { document.getElementById(field).value = opts[index]?.option_text || ''; });
+    document.getElementById('quizCorrect').value = opts.find(option => option.is_correct)?.option_text || '';
+  };
+  quizList?.addEventListener('click', async event => {
+    const edit = event.target.closest('[data-edit-quiz]');
+    const remove = event.target.closest('[data-delete-quiz]');
+    if (edit) return loadQuiz(edit.dataset.editQuiz);
+    if (remove && confirm('Supprimer ce quiz et ses questions ?')) {
+      const { error } = await supabase.from('course_quizzes').delete().eq('id', remove.dataset.deleteQuiz);
+      if (error) return alert(error.message);
+      await renderLists();
+    }
+  });
+  assignmentList?.addEventListener('click', async event => {
+    const edit = event.target.closest('[data-edit-assignment]');
+    const remove = event.target.closest('[data-delete-assignment]');
+    if (edit) return loadAssignment(edit.dataset.editAssignment);
+    if (remove && confirm('Supprimer ce devoir et ses remises ?')) {
+      const { error } = await supabase.from('assignments').delete().eq('id', remove.dataset.deleteAssignment);
+      if (error) return alert(error.message);
+      await renderLists();
+    }
+  });
+  renderLists();
 }
 
 function initAdminResources() {
