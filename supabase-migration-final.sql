@@ -106,6 +106,12 @@ create table if not exists public.courses (
   updated_at timestamptz not null default now()
 );
 
+alter table public.courses
+  add column if not exists participation_fee numeric not null default 0;
+
+alter table public.course_items
+  add column if not exists deadline_at timestamptz;
+
 create table if not exists public.student_courses (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
@@ -302,6 +308,17 @@ create index if not exists course_items_section_position_idx
 insert into storage.buckets (id, name, public)
 values ('course-files', 'course-files', true)
 on conflict (id) do nothing;
+
+drop policy if exists "Public can read course files" on storage.objects;
+create policy "Public can read course files"
+on storage.objects for select
+using (bucket_id = 'course-files');
+
+drop policy if exists "Admins can manage course files" on storage.objects;
+create policy "Admins can manage course files"
+on storage.objects for all
+using (bucket_id = 'course-files' and public.is_admin())
+with check (bucket_id = 'course-files' and public.is_admin());
 
 -- =========================
 -- RLS
